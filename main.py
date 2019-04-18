@@ -1,4 +1,10 @@
 from player_and_bullet import *
+from pygame import K_w, K_a, K_s, K_d
+
+r_A = K_w
+r_B = K_s
+r_L = K_a
+r_R = K_d
 
 
 # ----------------------------MAIN--------------------------------
@@ -8,9 +14,19 @@ def main():
     bullet_list_red = []
     bullet_list_blue = []
 
-    while True:
+    r_A_down = False
+    b_A_down = False
+
+    while player_blue.is_alive() and player_red.is_alive():
         # 接受指令
-        pass
+        key_pressed = pygame.key.get_pressed()
+        if key_pressed[r_A]:
+            r_A_down=True
+            player_red.power_up()
+        else:
+            if r_A_down:
+                player_red.attack()
+            r_A_down=False
 
         # 人物移动和射击
         pass
