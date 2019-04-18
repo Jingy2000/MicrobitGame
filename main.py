@@ -1,4 +1,6 @@
 from math import sin, cos, sqrt
+import time
+import pygame
 
 
 class Bullet():
@@ -75,7 +77,13 @@ while True:
     pass
 
     # 人物移动和射击
-    pass
+    if red_L:
+        player_red.left()
+    if red_R:
+        player_red.right()
+    if red_click:
+        player_red.attack()
+
 
     # 子弹的运动
     for bullet in bullet_list_red:
