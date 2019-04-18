@@ -1,5 +1,4 @@
 from math import sin, cos, sqrt
-import pygame
 
 
 class Bullet:
@@ -34,22 +33,42 @@ class Bullet:
         return self.alive
 
 
+class Power:
+    def __init__(self, max):
+        self.length = 0
+        self.max = max
+        self.v = 1  # 自动回复的速度
+        self.is_ready = False
+
+    def update(self):
+        if self.length < self.max:
+            self.length += self.v
+        else:
+            self.is_ready = True
+        return self.length / self.max  # 返回一个比值，用来显示在microbit上
+
+    def clear(self):
+        self.length = 0
+        self.is_ready = False
+
+
 class Player:
 
     def __init__(self, y):
         self.hp = 100
-        self.energy = 0
-        self.skillReady = False
-        self.__pos = (0, y)
-        self.hit_radius = 3
+        self.energy = Power(100)
+        self.power = Power(10)
         self.state = 's'  # 静止
         self.v = 1
+        self.__pos = (0, y)
+        self.hit_radius = 3
+        self.type = 'bullet_round'
 
-    def updatePos(self):
+    def move(self):
         if self.state == 'l':
-            self.__pos -= self.v
+            self.__pos = (self.__pos[0] - self.v, self.__pos[1])
         elif self.state == 'r':
-            self.__pos += self.v
+            self.__pos += (self.__pos[0] + self.v, self.__pos[1])
 
     def getPos(self):
         return self.__pos
@@ -60,15 +79,20 @@ class Player:
     def is_alive(self):
         return self.hp > 0
 
-    def updateEnergy(self):
-        self.energy += 1
-        return self.energy
-
     # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
-    def attack(self, bulletType):
-        # waittime = 10  # 前摇，到时候调整,需要时间等待
-        bullet1 = Bullet(type=bulletType, angle=-25, pos=self.__pos)
-        bullet2 = Bullet(type=bulletType, angle=0, pos=self.__pos)
-        bullet3 = Bullet(type=bulletType, angle=25, pos=self.__pos)
-        return bullet1, bullet2, bullet3
+    def attack(self):
+        if self.power.is_ready:
+            # 蓄力技能
+            self.power.clear()
+            return
+            pass
+        else:
+            bullet1 = Bullet(type=self.type, angle=-25, pos=self.__pos)
+            bullet2 = Bullet(type=self.type, angle=0, pos=self.__pos)
+            bullet3 = Bullet(type=self.type, angle=25, pos=self.__pos)
+            return bullet1, bullet2, bullet3
 
+    def superAttack(self):
+        # 这里写大招
+        self.energy.clear()
+        pass

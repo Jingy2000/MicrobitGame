@@ -17,7 +17,7 @@ def main():
     r_A_down = False
     b_A_down = False
 
-    while True:
+    while player_blue.is_alive() and player_red.is_alive():
         # 接受指令
         key_pressed = pygame.key.get_pressed()
         if key_pressed[r_A]:
@@ -29,7 +29,7 @@ def main():
             r_A_down=False
 
         # 人物移动和射击
-
+        pass
 
         # 子弹的运动
         for bullet in bullet_list_red:
