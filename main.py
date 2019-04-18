@@ -1,7 +1,7 @@
 from math import sin, cos, sqrt
 
 
-class Bullet():
+class Bullet:
     def __init__(self, type, pos, angle, v, size=(1, 1), rebound=False, damage=10):
         self.type = type
         self.pos = pos
@@ -22,19 +22,21 @@ class Bullet():
             player.subhp(self.damage)
 
 
-class Player():
+class Player:
     def __init__(self):
         self.hp = 100
         self.energy = 0
         self.skillReady = False
         self.pos = 0
         self.hit_radius = 3
+        self.state = 's'  # 静止
+        self.v = 1
 
-    def left(self):
-        self.pos -= 1
-
-    def right(self):
-        self.pos += 1
+    def updatePos(self):
+        if self.state == 'l':
+            self.pos -= self.v
+        elif self.state == 'r':
+            self.pos += self.v
 
     def subhp(self, n=1):
         self.hp -= n
@@ -42,8 +44,9 @@ class Player():
     def is_alive(self):
         return self.hp > 0
 
-    def increaseEnergy(self):
+    def updateEnergy(self):
         self.energy += 1
+        return self.energy
 
     # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
     def attack(self, bulletType):
