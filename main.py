@@ -8,7 +8,7 @@ def main():
     bullet_list_red = []
     bullet_list_blue = []
 
-    while True:
+    while player_blue.is_alive() and player_red.is_alive():
         # 接受指令
         pass
 
