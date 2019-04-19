@@ -1,10 +1,16 @@
 from player_and_bullet import *
-from pygame import K_w, K_a, K_s, K_d
+from pygame import K_w, K_a, K_s, K_d, K_UP, K_DOWN, K_LEFT, K_RIGHT, key
+from display import display
 
 r_A = K_w
 r_B = K_s
 r_L = K_a
 r_R = K_d
+
+b_A = K_UP
+b_B = K_DOWN
+b_L = K_LEFT
+b_R = K_RIGHT
 
 
 # ----------------------------MAIN--------------------------------
@@ -19,17 +25,26 @@ def main():
 
     while player_blue.is_alive() and player_red.is_alive():
         # 接受指令
-        key_pressed = pygame.key.get_pressed()
-        if key_pressed[r_A]:
-            r_A_down=True
-            player_red.power_up()
-        else:
-            if r_A_down:
-                player_red.attack()
-            r_A_down=False
+        key_pressed = key.get_pressed()
 
         # 人物移动和射击
-        pass
+        if key_pressed[r_A]:
+            r_A_down = True
+            player_red.power.update()
+        else:
+            if r_A_down:
+                for bullet in player_red.attack():
+                    bullet_list_red.append(bullet)
+            r_A_down = False
+
+        if key_pressed[r_L]:
+            player_red.state = 'l'
+        if key_pressed[r_R]:
+            player_red.state = 'r'
+        if (key_pressed[r_L]) and (key_pressed[r_R]):
+            player_red.state = 's'
+
+        player_red.move()
 
         # 子弹的运动
         for bullet in bullet_list_red:
@@ -55,7 +70,7 @@ def main():
                 bullet_list_blue.remove(bullet)
 
         # 调用绘图
-        pass
+        display(player_red, player_blue, bullet_list_red, bullet_list_blue)
 
 
 # 当前程序为主程序时调用
