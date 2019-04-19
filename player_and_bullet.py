@@ -2,7 +2,7 @@ from math import sin, cos, sqrt
 
 
 class Bullet:
-    def __init__(self, type, pos, angle, v=5, size=(1, 1), rebound=False, damage=10):
+    def __init__(self, type, pos, angle, v=1, size=(1, 1), rebound=False, damage=10):
         self.type = type
         self.__pos = pos
         self.angle = angle
@@ -86,9 +86,9 @@ class Player:
     def attack(self):
         if self.power.is_ready:
             # 蓄力技能
-            bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos, v=10, size=(3, 3))
-            bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos, v=10, size=(3, 3))
-            bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos, v=10, size=(3, 3))
+            bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos, v=3, size=(3, 3))
+            bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos, v=3, size=(3, 3))
+            bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos, v=3, size=(3, 3))
             self.power.clear()
             return bullet1, bullet2, bullet3
         else:
