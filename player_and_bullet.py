@@ -2,7 +2,7 @@ from math import sin, cos, sqrt
 
 
 class Bullet:
-    def __init__(self, type, pos, angle, v, size=(1, 1), rebound=False, damage=10):
+    def __init__(self, type, pos, angle, v=5, size=(1, 1), rebound=False, damage=10):
         self.type = type
         self.__pos = pos
         self.angle = angle
@@ -19,7 +19,7 @@ class Bullet:
 
     def move(self):
         self.__pos = (self.__pos[0] + self.v * cos(self.angle),
-                      self.__pos[1] + self.v * sin(self.angle))
+                      self.__pos[1] + self.v * sin(-self.angle))
         # 这里还可以判断出屏反弹
 
     def hit(self, player):
@@ -60,7 +60,7 @@ class Player:
         self.power = Power(10)
         self.state = 's'  # 静止
         self.v = 1
-        self.__pos = (0, y)
+        self.__pos = (200, y)
         self.hit_radius = 3
         self.type = 'bullet_round'
 
@@ -83,13 +83,15 @@ class Player:
     def attack(self):
         if self.power.is_ready:
             # 蓄力技能
+            bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos, v=10, size=(3, 3))
+            bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos, v=10, size=(3, 3))
+            bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos, v=10, size=(3, 3))
             self.power.clear()
-            return
-            pass
+            return bullet1, bullet2, bullet3
         else:
-            bullet1 = Bullet(type=self.type, angle=-25, pos=self.__pos)
-            bullet2 = Bullet(type=self.type, angle=0, pos=self.__pos)
-            bullet3 = Bullet(type=self.type, angle=25, pos=self.__pos)
+            bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos)
+            bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos)
+            bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos)
             return bullet1, bullet2, bullet3
 
     def superAttack(self):
