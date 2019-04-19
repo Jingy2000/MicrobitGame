@@ -11,6 +11,8 @@ class Bullet:
         self.rebound = rebound
         self.damage = damage
 
+        self.hit_radius = 5
+
         self.alive = True
         # self.visible=100 # 透明度，不知道要不要加
 
@@ -24,7 +26,8 @@ class Bullet:
 
     def hit(self, player):
         distance = sqrt((self.__pos[0] - player.pos[0]) ** 2 + (self.__pos[1] - player.pos[1]) ** 2)
-        if distance < (self.hit_radius + player.hit_radius):
+        eff_radius = (self.hit_radius * sqrt(self.size[0] ** 2 + self.size[1] ** 2) + player.hit_radius)
+        if distance < eff_radius:
             player.subHp(self.damage)
             return True
         return False

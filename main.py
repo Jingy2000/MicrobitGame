@@ -1,5 +1,5 @@
 from player_and_bullet import *
-from pygame import K_w, K_a, K_s, K_d, K_UP, K_DOWN, K_LEFT, K_RIGHT, key
+from pygame import K_w, K_a, K_s, K_d, K_UP, K_DOWN, K_LEFT, K_RIGHT, key, time
 from display import display
 
 r_A = K_w
@@ -15,15 +15,18 @@ b_R = K_RIGHT
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = Player(0)
-    player_blue = Player(600)  # 地图高度这个参数
+    player_red = Player(20)
+    player_blue = Player(580)  # 地图高度这个参数
     bullet_list_red = []
     bullet_list_blue = []
 
     r_A_down = False
     b_A_down = False
 
+    FPSclock = time.Clock()
+
     while player_blue.is_alive() and player_red.is_alive():
+        FPSclock.tick(60)
         # 接受指令
         key_pressed = key.get_pressed()
 
