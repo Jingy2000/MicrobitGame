@@ -59,7 +59,16 @@ def main():
             bullet.move()
 
         # 子弹出屏判定
-        pass
+        for bullet in bullet_list_blue:
+            x = bullet.getPos()[0]
+            y = bullet.getPos()[1]
+            if x > 400 or x < 0 or y < 0 or y > 800:
+                bullet_list_blue.remove(bullet)
+        for bullet in bullet_list_red:
+            x = bullet.getPos()[0]
+            y = bullet.getPos()[1]
+            if x > 400 or x < 0 or y < 0 or y > 800:
+                bullet_list_red.remove(bullet)
 
         # *子弹之间的碰撞判定
         pass

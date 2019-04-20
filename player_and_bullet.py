@@ -71,7 +71,7 @@ class Player:
         if self.state == 'l':
             self.__pos = (self.__pos[0] - self.v, self.__pos[1])
         elif self.state == 'r':
-            self.__pos += (self.__pos[0] + self.v, self.__pos[1])
+            self.__pos = (self.__pos[0] + self.v, self.__pos[1])
 
     def getPos(self):
         return self.__pos
@@ -95,6 +95,7 @@ class Player:
             bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos)
             bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos)
             bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos)
+            self.power.clear()
             return bullet1, bullet2, bullet3
 
     def superAttack(self):
