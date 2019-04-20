@@ -30,7 +30,7 @@ def display(player1, player2, bulletList1, bulletList2):
         blt_oppos = (800 - bullet.getPos()[0], 600 - bullet.getPos()[1])  # 子弹的镜像位置（未考虑子弹图片大小）
         blt_img = pygame.image.load("./image source/bullet.jpg")  # 之后可以加子弹类型判断图片
         blt_img = pygame.transform.scale(blt_img, (32, 8))  # 大小
-        blt_img = pygame.transform.rotate(blt_img, bullet.angle)  # 旋转
+        blt_img = pygame.transform.rotate(blt_img, -bullet.angle)  # 旋转
         screen.blit(blt_img, bullet.getPos())
         blt_img = pygame.transform.rotate(blt_img, 180)  # 比刚才那个再转180°
         screen.blit(blt_img, blt_oppos)
@@ -38,12 +38,9 @@ def display(player1, player2, bulletList1, bulletList2):
         blt_oppos = (800 - bullet.getPos()[0], 600 - bullet.getPos()[1])
         blt_img = pygame.image.load("./image source/bullet.jpg")
         blt_img = pygame.transform.scale(blt_img, (32, 8))
-        blt_img = pygame.transform.rotate(blt_img, bullet.angle)
+        blt_img = pygame.transform.rotate(blt_img, - bullet.angle)
         screen.blit(blt_img, bullet.getPos())
         blt_img = pygame.transform.rotate(blt_img, 180)
         screen.blit(blt_img, blt_oppos)
 
     pygame.display.update()
-
-
-
