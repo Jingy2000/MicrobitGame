@@ -25,7 +25,7 @@ class Bullet:
         # 这里还可以判断出屏反弹
 
     def hit(self, player):
-        distance = sqrt((self.__pos[0] - player.pos[0]) ** 2 + (self.__pos[1] - player.pos[1]) ** 2)
+        distance = sqrt((self.__pos[0] - player.getPos()[0]) ** 2 + (self.__pos[1] - player.getPos()[1]) ** 2)
         eff_radius = (self.hit_radius * sqrt(self.size[0] ** 2 + self.size[1] ** 2) + player.hit_radius)
         if distance < eff_radius:
             player.subHp(self.damage)

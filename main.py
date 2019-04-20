@@ -1,5 +1,6 @@
 from player_and_bullet import *
-from pygame import K_w, K_a, K_s, K_d, K_UP, K_DOWN, K_LEFT, K_RIGHT, key, time
+from pygame import K_w, K_a, K_s, K_d, K_UP, \
+    K_DOWN, K_LEFT, K_RIGHT, key, time, init
 from display import display
 
 r_A = K_w
@@ -23,6 +24,8 @@ def main():
     r_A_down = False
     b_A_down = False
 
+    init()
+
     FPSclock = time.Clock()
 
     while player_blue.is_alive() and player_red.is_alive():
@@ -44,7 +47,7 @@ def main():
             player_red.state = 'l'
         if key_pressed[r_R]:
             player_red.state = 'r'
-        if (key_pressed[r_L]) and (key_pressed[r_R]):
+        if (key_pressed[r_L] and key_pressed[r_R]) or (not key_pressed[r_L] and not key_pressed[r_R]):
             player_red.state = 's'
 
         player_red.move()
