@@ -3,15 +3,15 @@ from pygame import K_w, K_a, K_s, K_d, K_UP, \
     K_DOWN, K_LEFT, K_RIGHT, key, time, init
 from display import display
 
-r_A = K_w
-r_B = K_s
-r_L = K_a
-r_R = K_d
+b_A = K_w
+b_B = K_s
+b_L = K_a
+b_R = K_d
 
-b_A = K_UP
-b_B = K_DOWN
-b_L = K_LEFT
-b_R = K_RIGHT
+r_A = K_UP
+r_B = K_DOWN
+r_L = K_LEFT
+r_R = K_RIGHT
 
 
 # ----------------------------MAIN--------------------------------
@@ -50,7 +50,24 @@ def main():
         if (key_pressed[r_L] and key_pressed[r_R]) or (not key_pressed[r_L] and not key_pressed[r_R]):
             player_red.state = 's'
 
+        if key_pressed[b_A]:
+            b_A_down = True
+            player_blue.power.update()
+        else:
+            if b_A_down:
+                for bullet in player_blue.attack():
+                    bullet_list_blue.append(bullet)
+            b_A_down = False
+
+        if key_pressed[b_L]:
+            player_blue.state = 'l'
+        if key_pressed[b_R]:
+            player_blue.state = 'r'
+        if (key_pressed[b_L] and key_pressed[b_R]) or (not key_pressed[b_L] and not key_pressed[b_R]):
+            player_blue.state = 's'
+
         player_red.move()
+        player_blue.move()
 
         # 子弹的运动
         for bullet in bullet_list_red:
