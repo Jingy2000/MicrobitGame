@@ -1,7 +1,5 @@
 import pygame
 from pygame.locals import *
-import time
-from player_and_bullet import Player, Bullet  # 这个是为了测试用的，之后会删掉
 
 
 def do_exit():
@@ -29,12 +27,12 @@ def display(player1, player2, bulletList1, bulletList2):
     screen.blit(p2_img, p2_oppos)
 
     for bullet in bulletList1:
-        blt_oppos = (800 - bullet.getPos()[0], 600 - bullet.getPos()[1])  # 子弹的镜像位置
+        blt_oppos = (800 - bullet.getPos()[0], 600 - bullet.getPos()[1])  # 子弹的镜像位置（未考虑子弹图片大小）
         blt_img = pygame.image.load("./image source/bullet.jpg")  # 之后可以加子弹类型判断图片
         blt_img = pygame.transform.scale(blt_img, (32, 8))  # 大小
         blt_img = pygame.transform.rotate(blt_img, bullet.angle)  # 旋转
         screen.blit(blt_img, bullet.getPos())
-        blt_img = pygame.transform.rotate(blt_img, bullet.angle - 180)  # 子弹取向还有一些问题。。。明天再改吧
+        blt_img = pygame.transform.rotate(blt_img, 180)  # 比刚才那个再转180°
         screen.blit(blt_img, blt_oppos)
     for bullet in bulletList2:
         blt_oppos = (800 - bullet.getPos()[0], 600 - bullet.getPos()[1])
@@ -42,20 +40,10 @@ def display(player1, player2, bulletList1, bulletList2):
         blt_img = pygame.transform.scale(blt_img, (32, 8))
         blt_img = pygame.transform.rotate(blt_img, bullet.angle)
         screen.blit(blt_img, bullet.getPos())
-        blt_img = pygame.transform.rotate(blt_img, bullet.angle - 180)  # 同上
+        blt_img = pygame.transform.rotate(blt_img, 180)
         screen.blit(blt_img, blt_oppos)
 
-    while True:  # 这个循环体和后面的sleep之后要删掉，这里是我为了保留窗口看效果用的
-        do_exit()
-        pygame.display.update()
-        time.sleep(0.033)
+    pygame.display.update()
 
 
-'''这些后面当然也会删掉'''
-player1 = Player(0)
-player2 = Player(560)
-bulletList1 = []
-for i in range(10):
-    bullet = Bullet(0, (15 * i, 20 * i), 0)
-    bulletList1.append(bullet)
-display(player1, player2, bulletList1, [])
+
