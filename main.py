@@ -1,7 +1,7 @@
 from player_and_bullet import *
 from pygame import K_w, K_a, K_s, K_d, K_UP, \
-    K_DOWN, K_LEFT, K_RIGHT, key, time, init
-from display import display
+    K_DOWN, K_LEFT, K_RIGHT, key, time, init, K_ESCAPE
+from display import display, do_exit
 
 b_A = K_w
 b_B = K_s
@@ -10,14 +10,14 @@ b_R = K_d
 
 r_A = K_UP
 r_B = K_DOWN
-r_L = K_LEFT
-r_R = K_RIGHT
+r_L = K_RIGHT
+r_R = K_LEFT
 
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = Player(20)
-    player_blue = Player(580)  # 地图高度这个参数
+    player_red = Player(20, 90)
+    player_blue = Player(580, 270)  # 地图高度这个参数
     bullet_list_red = []
     bullet_list_blue = []
 
@@ -29,7 +29,7 @@ def main():
     FPSclock = time.Clock()
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(60)
+        FPSclock.tick(30)
         # 接受指令
         key_pressed = key.get_pressed()
 
@@ -37,6 +37,8 @@ def main():
         if key_pressed[r_A]:
             r_A_down = True
             player_red.power.update()
+        if key_pressed[K_ESCAPE]:
+            break
         else:
             if r_A_down:
                 for bullet in player_red.attack():
@@ -103,6 +105,7 @@ def main():
 
         # 调用绘图
         display(player_red, player_blue, bullet_list_red, bullet_list_blue)
+        do_exit()
 
 
 # 当前程序为主程序时调用
