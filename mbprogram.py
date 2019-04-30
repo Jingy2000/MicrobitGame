@@ -1,7 +1,3 @@
-# uart.init(baudrate=9600, bits=8, parity=None, stop=1, tx=pin0, rx=pin1)
-
-# uart.write()
-
 from microbit import *
 from microbit import i2c
 from gc import collect as gc
@@ -151,7 +147,7 @@ while not (button_a.get_presses() + button_b.get_presses()):
     keys, stick = values()
     sk = str(stick)
     key = str(keys)
-    uart.write(sk + ' ' + key + '\n')
+    uart.write(sk + '&' + key + '\n')
     display.show(Image.ANGRY)
     sleep(100)
 display.scroll("OVER!")

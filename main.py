@@ -2,6 +2,8 @@ from player_and_bullet import *
 from pygame import K_w, K_a, K_s, K_d, K_UP, \
     K_DOWN, K_LEFT, K_RIGHT, key, time, init, K_ESCAPE
 from display import display, do_exit
+import serial
+import re
 
 b_A = K_w
 b_B = K_s
@@ -12,6 +14,21 @@ r_A = K_UP
 r_B = K_DOWN
 r_L = K_RIGHT
 r_R = K_LEFT
+
+
+def getValue(ser):
+    joypadKey = (0, 0, 0, 0, 0)
+    joypadStick = (0, 0)
+    temp = str(ser.read(500))
+    values = temp.split('\\n')
+    if len(values) == 1 or len(temp) < 30:  # 传输的值要足够长才有效！
+        return joypadStick, joypadKey
+    values = values[-2]  # 最后一个不是想要的
+    joypadStick = re.findall(r"-?\d+", values.split('&')[0])  # x，y
+    joypadStick = tuple(map(int, joypadStick))
+    joypadKey = filter(str.isdigit, values.split('&')[1])  # 手柄，上，下，左，右
+    joypadKey = tuple(map(int, joypadKey))
+    return joypadStick, joypadKey
 
 
 # ----------------------------MAIN--------------------------------
@@ -27,46 +44,46 @@ def main():
     init()
 
     FPSclock = time.Clock()
+    ser = serial.Serial('COM3', 9600, timeout=0)
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(30)
+        FPSclock.tick(50)
         # 接受指令
         key_pressed = key.get_pressed()
-
-        # 人物移动和射击
-        if key_pressed[r_A]:
-            r_A_down = True
-            player_red.power.update()
         if key_pressed[K_ESCAPE]:
             break
+
+        # 读取手柄指令
+        joypadStick, joypadKey = getValue(ser)
+
+        # 人物射击
+        if joypadKey[3]:
+            r_A_down = True
+            player_red.power.update()
         else:
             if r_A_down:
                 for bullet in player_red.attack():
                     bullet_list_red.append(bullet)
             r_A_down = False
 
-        if key_pressed[r_L]:
-            player_red.state = 'l'
-        if key_pressed[r_R]:
-            player_red.state = 'r'
-        if (key_pressed[r_L] and key_pressed[r_R]) or (not key_pressed[r_L] and not key_pressed[r_R]):
-            player_red.state = 's'
+        #  移动
+        player_red.setDir(joypadStick)
 
-        if key_pressed[b_A]:
-            b_A_down = True
-            player_blue.power.update()
-        else:
-            if b_A_down:
-                for bullet in player_blue.attack():
-                    bullet_list_blue.append(bullet)
-            b_A_down = False
-
-        if key_pressed[b_L]:
-            player_blue.state = 'l'
-        if key_pressed[b_R]:
-            player_blue.state = 'r'
-        if (key_pressed[b_L] and key_pressed[b_R]) or (not key_pressed[b_L] and not key_pressed[b_R]):
-            player_blue.state = 's'
+        # if key_pressed[b_A]:
+        #     b_A_down = True
+        #     player_blue.power.update()
+        # else:
+        #     if b_A_down:
+        #         for bullet in player_blue.attack():
+        #             bullet_list_blue.append(bullet)
+        #     b_A_down = False
+        #
+        # if key_pressed[b_L]:
+        #     player_blue.state = 'l'
+        # if key_pressed[b_R]:
+        #     player_blue.state = 'r'
+        # if (key_pressed[b_L] and key_pressed[b_R]) or (not key_pressed[b_L] and not key_pressed[b_R]):
+        #     player_blue.state = 's'
 
         player_red.move()
         player_blue.move()
