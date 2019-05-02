@@ -1,6 +1,5 @@
 from microbit import *
 from microbit import i2c
-from gc import collect as gc
 from array import array
 
 # ---------------------------------mb---------------------------
@@ -144,11 +143,14 @@ def stick_directions(addr=None):
 uart.init()
 
 while not (button_a.get_presses() + button_b.get_presses()):
-    keys, stick = values()
-    sk = str(stick)
-    key = str(keys)
-    uart.write(sk + '&' + key + '\n')
+    keys, stick = values(22)  # A接口
+    sk1 = str(stick)
+    key1 = str(keys)
+    keys, stick = values(23)  # B接口
+    sk2 = str(stick)
+    key2 = str(keys)
+    uart.write(sk1 + '&' + key1 + '&' + sk2 + '&' + key2 + '\n')
     display.show(Image.ANGRY)
-    sleep(100)
+    sleep(1)
 display.scroll("OVER!")
 display.clear()

@@ -16,19 +16,22 @@ r_L = K_RIGHT
 r_R = K_LEFT
 
 
+# 获取手柄数据
 def getValue(ser):
+    temp = str(ser.read(50000))[2:-1]  # 去掉开头的b'和结尾的’
+    values = temp.split('\\n')
+    for i in range(0, len(values)):
+        v = values[-i - 1]  # 从后往前匹配
+        if re.match(r"\(-?\d+, -?\d+\)&\(\d, \d, \d, \d, \d\)&\(-?\d+, -?\d+\)&\(\d, \d, \d, \d, \d\)", v):
+            r_joypadStick = tuple(map(int, re.findall(r"-?\d+", v.split('&')[0])))  # x，y
+            r_joypadKey = tuple(map(int, filter(str.isdigit, v.split('&')[1])))  # 手柄，上，下，左，右
+            b_joypadStick = tuple(map(int, re.findall(r"-?\d+", v.split('&')[2])))  # x，y
+            b_joypadKey = tuple(map(int, filter(str.isdigit, v.split('&')[3])))  # 手柄，上，下，左，右
+            print(str(r_joypadStick) + '&' + str(r_joypadKey) + '&' + str(b_joypadStick) + '&' + str(b_joypadKey))  # for test
+            return r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey
     joypadKey = (0, 0, 0, 0, 0)
     joypadStick = (0, 0)
-    temp = str(ser.read(500))
-    values = temp.split('\\n')
-    if len(values) == 1 or len(temp) < 30:  # 传输的值要足够长才有效！
-        return joypadStick, joypadKey
-    values = values[-2]  # 最后一个不是想要的
-    joypadStick = re.findall(r"-?\d+", values.split('&')[0])  # x，y
-    joypadStick = tuple(map(int, joypadStick))
-    joypadKey = filter(str.isdigit, values.split('&')[1])  # 手柄，上，下，左，右
-    joypadKey = tuple(map(int, joypadKey))
-    return joypadStick, joypadKey
+    return joypadStick, joypadKey, joypadStick, joypadKey
 
 
 # ----------------------------MAIN--------------------------------
@@ -47,17 +50,17 @@ def main():
     ser = serial.Serial('COM3', 9600, timeout=0)
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(50)
+        FPSclock.tick(10)
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
             break
 
         # 读取手柄指令
-        joypadStick, joypadKey = getValue(ser)
+        r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey = getValue(ser)
 
         # 人物射击
-        if joypadKey[3]:
+        if r_joypadKey[3]:
             r_A_down = True
             player_red.power.update()
         else:
@@ -66,24 +69,19 @@ def main():
                     bullet_list_red.append(bullet)
             r_A_down = False
 
-        #  移动
-        player_red.setDir(joypadStick)
+        if b_joypadKey[3]:
+            b_A_down = True
+            player_blue.power.update()
+        else:
+            if b_A_down:
+                for bullet in player_blue.attack():
+                    bullet_list_blue.append(bullet)
+            b_A_down = False
 
-        # if key_pressed[b_A]:
-        #     b_A_down = True
-        #     player_blue.power.update()
-        # else:
-        #     if b_A_down:
-        #         for bullet in player_blue.attack():
-        #             bullet_list_blue.append(bullet)
-        #     b_A_down = False
-        #
-        # if key_pressed[b_L]:
-        #     player_blue.state = 'l'
-        # if key_pressed[b_R]:
-        #     player_blue.state = 'r'
-        # if (key_pressed[b_L] and key_pressed[b_R]) or (not key_pressed[b_L] and not key_pressed[b_R]):
-        #     player_blue.state = 's'
+        #  移动
+        player_red.setDir(r_joypadStick)
+        player_blue.setDir(b_joypadStick)
+
 
         player_red.move()
         player_blue.move()
