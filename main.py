@@ -17,7 +17,7 @@ r_R = K_RIGHT
 # ----------------------------MAIN--------------------------------
 def main():
     player_red = Player(20)
-    player_blue = Player(580)  # 地图高度这个参数
+    player_blue = Player(550)  # 地图高度这个参数
     bullet_list_red = []
     bullet_list_blue = []
 
