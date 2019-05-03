@@ -50,7 +50,7 @@ def main():
     ser = serial.Serial('COM3', 9600, timeout=0)
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(10)
+        time_passed = FPSclock.tick() / 1000
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
@@ -82,15 +82,15 @@ def main():
         player_red.setDir(r_joypadStick)
         player_blue.setDir(b_joypadStick)
 
+        for i in range(time_passed):
+            player_red.move()
+            player_blue.move()
 
-        player_red.move()
-        player_blue.move()
-
-        # 子弹的运动
-        for bullet in bullet_list_red:
-            bullet.move()
-        for bullet in bullet_list_blue:
-            bullet.move()
+            # 子弹的运动
+            for bullet in bullet_list_red:
+               bullet.move()
+            for bullet in bullet_list_blue:
+                bullet.move()
 
         # 子弹出屏判定
         for bullet in bullet_list_blue:
