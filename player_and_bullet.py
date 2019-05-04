@@ -1,4 +1,5 @@
-from math import sin, cos, sqrt, pi, radians
+from math import sin, cos, sqrt, pi, radians, atan
+from image_type import *
 
 
 class Bullet:
@@ -67,6 +68,7 @@ class Player:
         self.angle = angle  # 0-360,90是向上
         self.hit_radius = 3
         self.type = 'bullet_round'
+        self.enemy = None
 
     def move(self):
         if self.__direction == (0, 0):
@@ -76,7 +78,8 @@ class Player:
             direction = self.__direction
             x, y = direction[0], direction[1]
             rmax = 2048
-            pos_x, pos_y = current[0] - self.vmax * x / rmax * sin(radians(self.angle)), current[1] - self.vmax * y / rmax * sin(radians(self.angle))
+            pos_x, pos_y = current[0] - self.vmax * x / rmax * sin(radians(self.angle)), current[
+                1] - self.vmax * y / rmax * sin(radians(self.angle))
             # 人物出屏幕(考虑两个玩家角度不一样，对应范围也不一样）
             if pos_x < 0:
                 pos_x = 0
@@ -100,23 +103,99 @@ class Player:
     def is_alive(self):
         return self.hp > 0
 
-    # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
+    def set_enemy(self, enemy):
+        self.enemy = enemy
+
+    def aim(self, another=None):
+        if another == None:
+            another = self.enemy
+        e_pos = another.getPos()
+        if self.__pos[0] == e_pos[0]:
+            if self.__pos[1] > e_pos[1]:
+                ang = 270
+            elif self.__pos[1] < e_pos[1]:
+                ang = 90
+            else:
+                ang = 0
+        else:
+            ang = atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0]))
+        return ang
+
+        # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
+
     def attack(self):
         if self.power.is_ready:
             # 蓄力技能
-            bullet1 = Bullet(type=self.type, angle=self.angle - 25, pos=self.__pos, v=3, size=(3, 3))
-            bullet2 = Bullet(type=self.type, angle=self.angle, pos=self.__pos, v=3, size=(3, 3))
-            bullet3 = Bullet(type=self.type, angle=self.angle + 25, pos=self.__pos, v=3, size=(3, 3))
             self.power.clear()
-            return bullet1, bullet2, bullet3
+            return self.powerAttack()
         else:
-            bullet1 = Bullet(type=self.type, angle=self.angle - 25, pos=self.__pos)
-            bullet2 = Bullet(type=self.type, angle=self.angle, pos=self.__pos)
-            bullet3 = Bullet(type=self.type, angle=self.angle + 25, pos=self.__pos)
             self.power.clear()
-            return bullet1, bullet2, bullet3
+            return self.baseAttack()
+
+    def baseAttack(self):
+        bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos)
+        bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos)
+        bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos)
+        return bullet1, bullet2, bullet3
+
+    def powerAttack(self):
+        bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos, v=3, size=(3, 3))
+        bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos, v=3, size=(3, 3))
+        bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos, v=3, size=(3, 3))
+        return bullet1, bullet2, bullet3
 
     def superAttack(self):
         # 这里写大招
         self.energy.clear()
+        pass
+
+
+class P_Round(Player):
+    def baseAttack(self):
+        b_lst = []
+        for i in range(5):
+            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.aim(), v=(i + 1) * 2))
+        return b_lst
+
+    def powerAttack(self):
+        b_lst = []
+        for i in range(8):
+            b_lst.append(Bullet(type=bullet_round,
+                                pos=(self.__pos[0] + 10 * cos(pi * i / 8), self.__pos[1] + 10 * sin(pi * i / 8)),
+                                angle=self.aim() + 5, v=5))
+            b_lst.append(Bullet(type=bullet_round,
+                                pos=(self.__pos[0] + 10 * cos(pi * i / 8), self.__pos[1] + 10 * sin(pi * i / 8)),
+                                angle=self.aim() - 5, v=5))
+        return b_lst
+
+    def superAttack(self):
+        pass
+
+
+class P_Delta(Player):
+    def baseAttack(self):
+        b_lst = []
+        for i in range(3):
+            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.angle + (i - 1) * 5, v=10))
+        return b_lst
+
+    def powerAttack(self):
+        pass
+
+    def superAttack(self):
+        pass
+
+
+class P_Square(Player):
+    def baseAttack(self):
+        b_lst=[]
+        for i in range(3):
+            b_lst.append(
+                Bullet(type=bullet_round, pos=(self.__pos[0] + (i - 1) * 5, self.__pos[1]), angle=self.angle, v=10))
+        return b_lst
+
+    def powerAttack(self):
+        pass
+
+    def superAttack(self):
         pass
