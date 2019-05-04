@@ -27,7 +27,8 @@ def getValue(ser):
             r_joypadKey = tuple(map(int, filter(str.isdigit, v.split('&')[1])))  # 手柄，上，下，左，右
             b_joypadStick = tuple(map(int, re.findall(r"-?\d+", v.split('&')[2])))  # x，y
             b_joypadKey = tuple(map(int, filter(str.isdigit, v.split('&')[3])))  # 手柄，上，下，左，右
-            print(str(r_joypadStick) + '&' + str(r_joypadKey) + '&' + str(b_joypadStick) + '&' + str(b_joypadKey))  # for test
+            print(str(r_joypadStick) + '&' + str(r_joypadKey) + '&' + str(b_joypadStick) + '&' + str(
+                b_joypadKey))  # for test
             return r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey
     joypadKey = (0, 0, 0, 0, 0)
     joypadStick = (0, 0)
@@ -37,7 +38,7 @@ def getValue(ser):
 # ----------------------------MAIN--------------------------------
 def main():
     player_red = Player(20, 90)
-    player_blue = Player(550, 270)  # 地图高度这个参数
+    player_blue = Player(580, 270)  # 地图高度这个参数
     bullet_list_red = []
     bullet_list_blue = []
 
@@ -50,7 +51,7 @@ def main():
     ser = serial.Serial('COM3', 9600, timeout=0)
 
     while player_blue.is_alive() and player_red.is_alive():
-        time_passed = FPSclock.tick() / 1000
+        FPSclock.tick(15)
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
@@ -82,15 +83,14 @@ def main():
         player_red.setDir(r_joypadStick)
         player_blue.setDir(b_joypadStick)
 
-        for i in range(time_passed):
-            player_red.move()
-            player_blue.move()
+        player_red.move()
+        player_blue.move()
 
-            # 子弹的运动
-            for bullet in bullet_list_red:
-               bullet.move()
-            for bullet in bullet_list_blue:
-                bullet.move()
+        # 子弹的运动
+        for bullet in bullet_list_red:
+            bullet.move()
+        for bullet in bullet_list_blue:
+            bullet.move()
 
         # 子弹出屏判定
         for bullet in bullet_list_blue:

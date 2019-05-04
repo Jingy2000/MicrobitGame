@@ -20,7 +20,7 @@ class Bullet:
     def getPos(self):
         return self.__pos
 
-    def move(self):
+    def move(self, ):
         self.__pos = (self.__pos[0] + self.v * cos(radians(self.angle)),
                       self.__pos[1] + self.v * sin(radians(self.angle)))
         # 这里还可以判断出屏反弹
@@ -62,7 +62,7 @@ class Player:
         self.hp = 100
         self.energy = Power(100)
         self.power = Power(10)
-        self.vmax = 5
+        self.vmax = 10
         self.__direction = (0, 0)  # 方向是手柄给出的方向，上-，左-
         self.__pos = (200, y)
         self.angle = angle  # 0-360,90是向上
