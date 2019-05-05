@@ -63,7 +63,7 @@ class Player:
         self.hp = 100
         self.energy = Power(100)
         self.power = Power(10)
-        self.vmax = 10
+        self.vmax = 5
         self.__direction = (0, 0)  # 方向是手柄给出的方向，上-，左-
         self.__pos = (200, y)
         self.angle = angle  # 0-360,90是向上
@@ -80,7 +80,7 @@ class Player:
             current = self.__pos
             direction = self.__direction
             x, y = direction[0], direction[1]
-            rmax = 2048
+            rmax = 8
             pos_x, pos_y = current[0] - self.vmax * x / rmax * sin(radians(self.angle)), current[
                 1] - self.vmax * y / rmax * sin(radians(self.angle))
             # 人物出屏幕(考虑两个玩家角度不一样，对应范围也不一样）
@@ -98,7 +98,7 @@ class Player:
         return self.__pos
 
     def setDir(self, dir):
-        self.__direction = dir
+        self.__direction = tuple(dir)
 
     def subHp(self, n=1):
         self.hp -= n

@@ -5,6 +5,8 @@ from display import display, do_exit
 import serial
 import re
 
+SEP = bytes([9])
+
 b_A = K_w
 b_B = K_s
 b_L = K_a
@@ -17,22 +19,29 @@ r_R = K_LEFT
 
 
 # 获取手柄数据
+def conv(data):
+    if len(data) != 9:
+        return [0, 0], [0, 0, 0, 0, 0]
+    x, y = data[5] + data[6] / 256, data[7] + data[8] / 256
+    x = round(x - 8)
+    y = round(8 - y)
+    return [x, y], data[:5]
+
+
 def getValue(ser):
-    temp = str(ser.read(50000))[2:-1]  # 去掉开头的b'和结尾的’
-    values = temp.split('\\n')
-    for i in range(0, len(values)):
-        v = values[-i - 1]  # 从后往前匹配
-        if re.match(r"\(-?\d+, -?\d+\)&\(\d, \d, \d, \d, \d\)&\(-?\d+, -?\d+\)&\(\d, \d, \d, \d, \d\)", v):
-            r_joypadStick = tuple(map(int, re.findall(r"-?\d+", v.split('&')[0])))  # x，y
-            r_joypadKey = tuple(map(int, filter(str.isdigit, v.split('&')[1])))  # 手柄，上，下，左，右
-            b_joypadStick = tuple(map(int, re.findall(r"-?\d+", v.split('&')[2])))  # x，y
-            b_joypadKey = tuple(map(int, filter(str.isdigit, v.split('&')[3])))  # 手柄，上，下，左，右
-            print(str(r_joypadStick) + '&' + str(r_joypadKey) + '&' + str(b_joypadStick) + '&' + str(
-                b_joypadKey))  # for test
-            return r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey
-    joypadKey = (0, 0, 0, 0, 0)
-    joypadStick = (0, 0)
-    return joypadStick, joypadKey, joypadStick, joypadKey
+    temp = ser.read(100)  # 开始的时候mb一定要重启，避免垃圾数据的残留，就要卡很久了....
+    valueList = temp.split(b'\n')[:-1]  # 舍弃最后一个残缺的
+    if not valueList:  # 如果是空的，说明数据get的少了
+        return [0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]
+    values = valueList[-1]
+    if not SEP in values:
+        return [0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]
+    data1 = list(values.split(SEP)[0])
+    data2 = list(values.split(SEP)[1])
+    r_joypadStick, r_joypadKey = conv(data1)
+    b_joypadStick, b_joypadKey = conv(data2)
+    print(r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey)
+    return r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey
 
 
 # ----------------------------MAIN--------------------------------
@@ -49,10 +58,10 @@ def main():
     init()
 
     FPSclock = time.Clock()
-    ser = serial.Serial('COM3', 9600, timeout=0)
+    ser = serial.Serial('COM3', baudrate=19200, timeout=0)
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(15)
+        FPSclock.tick(60)
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
