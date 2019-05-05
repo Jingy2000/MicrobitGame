@@ -38,7 +38,8 @@ def display(player1, player2, bulletList1, bulletList2):
         blt_img = pygame.transform.rotate(blt_img, 180)  # 比刚才那个再转180°
         screen.blit(blt_img, blt_oppos)
     for bullet in bulletList2:
-        blt_oppos = (800 - bullet.getPos()[0], 600 - bullet.getPos()[1])
+        blt_pos = (bullet.getPos()[0] - 10, bullet.getPos()[1] - 10)
+        blt_oppos = (790 - blt_pos[0], 590 - blt_pos[1])  # 子弹的镜像位置
         blt_img = pygame.image.load("./image source/bullet2.jpg")
         blt_img = pygame.transform.scale(blt_img, (20, 20))
         blt_img = pygame.transform.rotate(blt_img, - bullet.angle)
