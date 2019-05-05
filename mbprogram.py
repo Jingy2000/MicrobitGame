@@ -107,21 +107,21 @@ for p in range(16):
 
 # ----------------------joypad----------------------------
 
-
+# 改成-8 -- 8 的手柄坐标了
 def conv(data):
-    x, y = data[5] * 256 + data[6], data[7] * 256 + data[8]
-    x = x - 2048
-    y = 2048 - y
+    x, y = data[5] + data[6] // 256, data[7] + data[8] // 256
+    x = x - 8
+    y = 8 - y
     return tuple(data[:5]), (x, y)
 
 
 def values(addr=None):
     data = command(slot(addr, 7), b'get_key_val', 9, True)
     if isinstance(data, bytes):
-        return conv(data)
+        return data
     if data == None:
-        return None, None
-    return tuple(conv(i) for i in data)
+        return None
+    # return tuple(conv(i) for i in data)
 
 
 def keys(addr=None):
@@ -132,24 +132,15 @@ def stickxy(addr=None):
     return values(addr)[1]
 
 
-def stick_directions(addr=None):
-    tmp = values(addr)[1]
-    if tmp == None: return
-    xd = 1 if tmp[0] > 1000 else -1 if tmp[0] < -1000 else 0
-    yd = 1 if tmp[1] > 1000 else -1 if tmp[1] < -1000 else 0
-    return (xd, yd)
+
 
 
 uart.init()
 
 while not (button_a.get_presses() + button_b.get_presses()):
-    keys, stick = values(22)  # A接口
-    sk1 = str(stick)
-    key1 = str(keys)
-    keys, stick = values(23)  # B接口
-    sk2 = str(stick)
-    key2 = str(keys)
-    uart.write(sk1 + '&' + key1 + '&' + sk2 + '&' + key2 + '\n')
+    data1 = values(22)
+    data2 = values(23)
+    uart.write(data1 + bytes([9]) + data2 + b'\n')  # sep = 9!!!
     display.show(Image.ANGRY)
     sleep(1)
 display.scroll("OVER!")
