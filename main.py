@@ -37,8 +37,9 @@ def getValue(ser):
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = Player(20, 90)
-    player_blue = Player(580, 270)  # 地图高度这个参数
+    player_red = P_Delta(20, 90)
+    player_blue = P_Round(580, 270)# 地图高度这个参数
+    player_blue.set_enemy(player_red)
     bullet_list_red = []
     bullet_list_blue = []
 

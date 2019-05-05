@@ -118,7 +118,7 @@ class Player:
             else:
                 ang = 0
         else:
-            ang = atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0]))*180/pi
+            ang = (atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0])) * 180 / pi) % 180 + 180
         return ang
 
         # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
@@ -154,17 +154,17 @@ class P_Round(Player):
     def baseAttack(self):
         b_lst = []
         for i in range(5):
-            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.aim(), v=(i + 1) * 2))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim(), v=(i + 1) * 2))
         return b_lst
 
     def powerAttack(self):
         b_lst = []
         for i in range(8):
             b_lst.append(Bullet(type=bullet_round,
-                                pos=(self.__pos[0] + 10 * cos(pi * i / 8), self.__pos[1] + 10 * sin(pi * i / 8)),
+                                pos=(self.getPos()[0] + 10 * cos(pi * i / 8), self.getPos()[1] + 10 * sin(pi * i / 8)),
                                 angle=self.aim() + 5, v=5))
             b_lst.append(Bullet(type=bullet_round,
-                                pos=(self.__pos[0] + 10 * cos(pi * i / 8), self.__pos[1] + 10 * sin(pi * i / 8)),
+                                pos=(self.getPos()[0] + 10 * cos(pi * i / 8), self.getPos()[1] + 10 * sin(pi * i / 8)),
                                 angle=self.aim() - 5, v=5))
         return b_lst
 
@@ -176,7 +176,7 @@ class P_Delta(Player):
     def baseAttack(self):
         b_lst = []
         for i in range(3):
-            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.angle + (i - 1) * 5, v=10))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + (i - 1) * 5, v=10))
         return b_lst
 
     def powerAttack(self):
@@ -188,10 +188,11 @@ class P_Delta(Player):
 
 class P_Square(Player):
     def baseAttack(self):
-        b_lst=[]
+        b_lst = []
         for i in range(3):
             b_lst.append(
-                Bullet(type=bullet_round, pos=(self.__pos[0] + (i - 1) * 5, self.__pos[1]), angle=self.angle, v=10))
+                Bullet(type=bullet_round, pos=(self.getPos()[0] + (i - 1) * 5, self.getPos()[1]), angle=self.angle,
+                       v=10))
         return b_lst
 
     def powerAttack(self):

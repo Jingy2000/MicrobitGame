@@ -151,6 +151,6 @@ while not (button_a.get_presses() + button_b.get_presses()):
     key2 = str(keys)
     uart.write(sk1 + '&' + key1 + '&' + sk2 + '&' + key2 + '\n')
     display.show(Image.ANGRY)
-    sleep(1)
+    sleep(20)
 display.scroll("OVER!")
 display.clear()
