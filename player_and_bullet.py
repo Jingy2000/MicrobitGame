@@ -62,7 +62,7 @@ class Player:
     def __init__(self, y, angle):
         self.hp = 100
         self.energy = Power(100)
-        self.power = Power(10)
+        self.power = Power(30)
         self.vmax = 5
         self.__direction = (0, 0)  # 方向是手柄给出的方向，上-，左-
         self.__pos = (200, y)
@@ -74,6 +74,7 @@ class Player:
         self.card_on = 0
 
     def move(self):
+        self.cd -= 1
         if self.__direction == (0, 0):
             pass
         else:
@@ -103,6 +104,14 @@ class Player:
     def subHp(self, n=1):
         self.hp -= n
 
+    def power_up(self):
+        if self.power.is_ready:
+            # 蓄力技能
+            self.power.clear()
+            return self.powerAttack()
+        else:
+            self.power.update()
+
     def is_alive(self):
         return self.hp > 0
 
@@ -122,13 +131,14 @@ class Player:
                 ang = 0
         else:
             ang = atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0])) * 180 / pi
+            if e_pos[0] - self.__pos[0] < 0:
+                ang += 180
         return ang
 
         # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
 
     def attack(self):
         if self.cd > 0:
-            self.cd -= 1
             return
 
         if self.power.is_ready:
@@ -164,9 +174,11 @@ class Player:
 class P_Round(Player):
     def baseAttack(self):
         b_lst = []
-        self.cd = 15
-        for i in range(5):
-            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.aim(), v=(i + 1) * 2))
+        self.cd = 10
+        for i in range(2,5):
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim(), v=(i + 1) * 2))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim()+15, v=(i + 1) * 2))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim()-15, v=(i + 1) * 2))
         return b_lst
 
     def powerAttack(self):
@@ -174,11 +186,17 @@ class P_Round(Player):
         self.cd = 5
         for i in range(8):
             b_lst.append(Bullet(type=bullet_round,
-                                pos=(self.__pos[0] + 10 * cos(pi * i / 8), self.__pos[1] + 10 * sin(pi * i / 8)),
-                                angle=self.aim() + 5, v=5))
+                                pos=(self.getPos()[0] + 20 * cos(2 * pi * i / 8),
+                                     self.getPos()[1] + 20 * sin(2 * pi * i / 8)),
+                                angle=self.aim() + 20, v=10))
             b_lst.append(Bullet(type=bullet_round,
-                                pos=(self.__pos[0] + 10 * cos(pi * i / 8), self.__pos[1] + 10 * sin(pi * i / 8)),
-                                angle=self.aim() - 5, v=5))
+                                pos=(self.getPos()[0] + 20 * cos(2 * pi * i / 8),
+                                     self.getPos()[1] + 20 * sin(2 * pi * i / 8)),
+                                angle=self.aim(), v=5))
+            b_lst.append(Bullet(type=bullet_round,
+                                pos=(self.getPos()[0] + 20 * cos(2 * pi * i / 8),
+                                     self.getPos()[1] + 20 * sin(2 * pi * i / 8)),
+                                angle=self.aim() - 20, v=10))
         return b_lst
 
     def superAttack(self):
@@ -189,15 +207,15 @@ class P_Delta(Player):
     def baseAttack(self):
         b_lst = []
         self.cd = 7
-        for i in range(3):
-            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.angle + (i - 1) * 5, v=10))
+        for i in range(7):
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + (i - 3) * 10, v=10))
         return b_lst
 
     def powerAttack(self):
         b_lst = []
         self.cd = 15
         for i in range(15):
-            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.angle + random.uniform(-30, 30),
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + random.uniform(-60, 60),
                                 v=random.uniform(5, 15)))
         return b_lst
 
@@ -209,16 +227,18 @@ class P_Square(Player):
     def baseAttack(self):
         b_lst = []
         self.cd = 5
-        for i in range(3):
+        for i in range(5):
             b_lst.append(
-                Bullet(type=bullet_round, pos=(self.__pos[0] + (i - 1) * 10, self.__pos[1]), angle=self.angle, v=10))
+                Bullet(type=bullet_round, pos=(self.getPos()[0] + (i - 1) * 10, self.getPos()[1]), angle=self.angle,
+                       v=20))
         return b_lst
 
     def powerAttack(self):
         b_lst = []
         self.cd = 15
-        for i in range(5):
-            b_lst.append(Bullet(type=bullet_round, pos=self.__pos, angle=self.angle, v=(i + 1) * 3))
+        for i in range(10):
+            b_lst.append(Bullet(type=bullet_round, pos=(self.getPos()[0] + i * 10, self.getPos()[1]), angle=self.angle, v=(16-i) * 1))
+            b_lst.append(Bullet(type=bullet_round, pos=(self.getPos()[0] - i * 10, self.getPos()[1]), angle=self.angle, v=(16-i) * 1))
         return b_lst
 
     def superAttack(self):
@@ -239,12 +259,9 @@ class C_flower(Card):
     def run(self):
         if self.cd == 0:
             self.cd = 225
-            self.on=True
+            self.on = True
 
         self.time += 1
         b_lst = []
-        if (self.time<10):
+        if (self.time < 10):
             return
-
-
-

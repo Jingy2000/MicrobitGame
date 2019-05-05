@@ -21,7 +21,7 @@ r_R = K_LEFT
 # 获取手柄数据
 def conv(data):
     if len(data) != 9:
-        return [0, 0], [0, 0, 0, 0, 0]
+        return None, None
     x, y = data[5] + data[6] / 256, data[7] + data[8] / 256
     x = round(x - 8)
     y = round(8 - y)
@@ -32,25 +32,29 @@ def getValue(ser):
     temp = ser.read(100)  # 开始的时候mb一定要重启，避免垃圾数据的残留，就要卡很久了....
     valueList = temp.split(b'\n')[:-1]  # 舍弃最后一个残缺的
     if not valueList:  # 如果是空的，说明数据get的少了
-        return [0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]
+        return
     values = valueList[-1]
     if not SEP in values:
-        return [0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]
+        return
     data1 = list(values.split(SEP)[0])
     data2 = list(values.split(SEP)[1])
     r_joypadStick, r_joypadKey = conv(data1)
     b_joypadStick, b_joypadKey = conv(data2)
+    if None in (r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey):
+        print("Bad")
+        return None
     print(r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey)
     return r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey
 
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = Player(20, 90)
-    player_blue = Player(580, 270)  # 地图高度这个参数
+    player_red = P_Square(20, 90)
+    player_blue = P_Round(580, 270)  # 地图高度这个参数
+    player_red.set_enemy(player_blue)
+    player_blue.set_enemy(player_red)
     bullet_list_red = []
     bullet_list_blue = []
-    bullet_list_neutual = []
 
     r_A_down = False
     b_A_down = False
@@ -60,33 +64,49 @@ def main():
     FPSclock = time.Clock()
     ser = serial.Serial('COM3', baudrate=19200, timeout=0)
 
+    last = [[0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]]
+
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(60)
+        FPSclock.tick(10)
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
             break
 
         # 读取手柄指令
-        r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey = getValue(ser)
+        values = getValue(ser)
+        if values == None:
+            values = last
+        r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey = values
+        last = values
 
         # 人物射击
         if r_joypadKey[3]:
             r_A_down = True
-            player_red.power.update()
+            bs = player_red.power_up()
+            if bs != None:
+                for bullet in bs:
+                    bullet_list_red.append(bullet)
         else:
             if r_A_down:
-                for bullet in player_red.attack():
-                    bullet_list_red.append(bullet)
+                bs = player_red.attack()
+                if bs != None:
+                    for bullet in bs:
+                        bullet_list_red.append(bullet)
             r_A_down = False
 
         if b_joypadKey[3]:
             b_A_down = True
-            player_blue.power.update()
+            bs = player_blue.power_up()
+            if bs != None:
+                for bullet in bs:
+                    bullet_list_blue.append(bullet)
         else:
             if b_A_down:
-                for bullet in player_blue.attack():
-                    bullet_list_blue.append(bullet)
+                bs = player_blue.attack()
+                if bs != None:
+                    for bullet in bs:
+                        bullet_list_blue.append(bullet)
             b_A_down = False
 
         #  移动
