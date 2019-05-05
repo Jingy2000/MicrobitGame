@@ -132,10 +132,7 @@ def stickxy(addr=None):
     return values(addr)[1]
 
 
-
-
-
-uart.init()
+uart.init(baudrate=19200)
 
 while not (button_a.get_presses() + button_b.get_presses()):
     data1 = values(22)

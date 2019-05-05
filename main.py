@@ -29,7 +29,7 @@ def conv(data):
 
 
 def getValue(ser):
-    temp = ser.read(100)
+    temp = ser.read(100)  # 开始的时候mb一定要重启，避免垃圾数据的残留，就要卡很久了....
     valueList = temp.split(b'\n')[:-1]  # 舍弃最后一个残缺的
     if not valueList:  # 如果是空的，说明数据get的少了
         return [0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]
@@ -57,10 +57,10 @@ def main():
     init()
 
     FPSclock = time.Clock()
-    ser = serial.Serial('COM3', 9600, timeout=0)
+    ser = serial.Serial('COM3', baudrate=19200, timeout=0)
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(20)
+        FPSclock.tick(60)
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
