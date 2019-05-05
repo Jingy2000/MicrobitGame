@@ -41,6 +41,7 @@ def main():
     player_blue = Player(580, 270)  # 地图高度这个参数
     bullet_list_red = []
     bullet_list_blue = []
+    bullet_list_neutual = []
 
     r_A_down = False
     b_A_down = False
