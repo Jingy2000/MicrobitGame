@@ -129,6 +129,7 @@ def keys(addr=None):
 
 
 def stickxy(addr=None):
+
     return values(addr)[1]
 
 
@@ -139,6 +140,6 @@ while not (button_a.get_presses() + button_b.get_presses()):
     data2 = values(23)
     uart.write(data1 + bytes([9]) + data2 + b'\n')  # sep = 9!!!
     display.show(Image.ANGRY)
-    sleep(20)
+    sleep(10)
 display.scroll("OVER!")
 display.clear()
