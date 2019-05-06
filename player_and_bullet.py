@@ -149,7 +149,9 @@ class Player:
             else:
                 ang = 0
         else:
-            ang = (atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0])) * 180 / pi) % 180 + 180
+            ang = atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0])) * 180 / pi
+            if e_pos[0] - self.__pos[0] < 0:
+                ang += 180
         return ang
 
         # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
