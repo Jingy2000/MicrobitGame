@@ -172,6 +172,11 @@ def main():
         display(player_red, player_blue, bullet_list_red, bullet_list_blue)
         do_exit()
 
+    if not player_blue.is_alive():
+        print('blue die!')
+    if not player_red.is_alive():
+        print('red die!')
+
 
 # 当前程序为主程序时调用
 if __name__ == "__main__":
