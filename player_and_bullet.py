@@ -21,7 +21,7 @@ class Bullet:
     def getPos(self):
         return self.__pos
 
-    def move(self, ):
+    def move(self):
         self.__pos = (self.__pos[0] + self.v * cos(radians(self.angle)),
                       self.__pos[1] + self.v * sin(radians(self.angle)))
         # 这里还可以判断出屏反弹
@@ -36,6 +36,16 @@ class Bullet:
 
     def is_alive(self):
         return self.alive
+
+
+class B_trap(Bullet):
+    def move(self):
+        self.v = self.v * 0.98
+        self.__pos = (self.__pos[0] + self.v * cos(radians(self.angle)),
+                      self.__pos[1] + self.v * sin(radians(self.angle)))
+        if self.v < 0.01:
+            self.alive = False
+        # 这里还可以判断出屏反弹
 
 
 class Power:
@@ -72,9 +82,15 @@ class Player:
         self.enemy = None
         self.cd = 0
         self.card_on = 0
+        self.cards = []
 
     def move(self):
         self.cd -= 1
+
+        for card in self.cards:
+            if not card.ready():
+                card.cold_down()
+
         if self.__direction == (0, 0):
             pass
         else:
@@ -105,6 +121,9 @@ class Player:
         self.hp -= n
 
     def power_up(self):
+        if self.cd > 0:
+            return
+
         if self.power.is_ready:
             # 蓄力技能
             self.power.clear()
@@ -164,8 +183,15 @@ class Player:
         self.energy.clear()
         pass
 
+    def use_card(self, i):
+        if (self.cd == 0) and self.cards[i].ready():
+            self.cards[self.card_on].run()
+            self.cd = self.cards[i].silent
+
     def run_card(self):
-        self.cards[self.card_on].run()
+        for card in self.cards:
+            if card.on:
+                card.run()
         return
 
 
@@ -173,10 +199,10 @@ class P_Round(Player):
     def baseAttack(self):
         b_lst = []
         self.cd = 10
-        for i in range(2,5):
+        for i in range(2, 5):
             b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim(), v=(i + 1) * 2))
-            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim()+15, v=(i + 1) * 2))
-            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim()-15, v=(i + 1) * 2))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim() + 15, v=(i + 1) * 2))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim() - 15, v=(i + 1) * 2))
         return b_lst
 
     def powerAttack(self):
@@ -235,8 +261,10 @@ class P_Square(Player):
         b_lst = []
         self.cd = 15
         for i in range(10):
-            b_lst.append(Bullet(type=bullet_round, pos=(self.getPos()[0] + i * 10, self.getPos()[1]), angle=self.angle, v=(16-i) * 1))
-            b_lst.append(Bullet(type=bullet_round, pos=(self.getPos()[0] - i * 10, self.getPos()[1]), angle=self.angle, v=(16-i) * 1))
+            b_lst.append(Bullet(type=bullet_round, pos=(self.getPos()[0] + i * 10, self.getPos()[1]), angle=self.angle,
+                                v=(16 - i) * 1))
+            b_lst.append(Bullet(type=bullet_round, pos=(self.getPos()[0] - i * 10, self.getPos()[1]), angle=self.angle,
+                                v=(16 - i) * 1))
         return b_lst
 
     def superAttack(self):
@@ -252,14 +280,34 @@ class Card:
     def ready(self):
         return self.cd == 0
 
+    def cold_down(self):
+        self.cd -= 1
+
+    def run(self):
+        pass
+
 
 class C_flower(Card):
+    def __init__(self):
+        Card.__init__(self)
+        self.silent = 60
+
     def run(self):
         if self.cd == 0:
             self.cd = 225
             self.on = True
+            return
+
+        if self.time == 46:
+            self.on = False
 
         self.time += 1
         b_lst = []
-        if (self.time < 10):
-            return
+        if (self.time % 15 == 0):
+            for i in range(6):
+                for j in range(8):
+                    b_lst.append(
+                        Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + i * 9 + j * 45, v=5 + i * 3))
+                    b_lst.append(
+                        Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle - i * 9 + j * 45, v=5 + i * 3))
+        return b_lst
