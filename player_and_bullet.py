@@ -4,9 +4,9 @@ import random
 
 
 class Bullet:
-    def __init__(self, type, pos, angle, v=10, size=(1, 1), rebound=False, damage=10):
+    def __init__(self, type, pos, angle, v=10.0, size=(1, 1), rebound=False, damage=10):
         self.type = type
-        self.__pos = pos
+        self.pos = pos
         self.angle = angle
         self.v = v
         self.size = size
@@ -19,15 +19,15 @@ class Bullet:
         # self.visible=100 # 透明度，不知道要不要加
 
     def getPos(self):
-        return self.__pos
+        return self.pos
 
     def move(self):
-        self.__pos = (self.__pos[0] + self.v * cos(radians(self.angle)),
-                      self.__pos[1] + self.v * sin(radians(self.angle)))
+        self.pos = (self.pos[0] + self.v * cos(radians(self.angle)),
+                    self.pos[1] + self.v * sin(radians(self.angle)))
         # 这里还可以判断出屏反弹
 
     def hit(self, player):
-        distance = sqrt((self.__pos[0] - player.getPos()[0]) ** 2 + (self.__pos[1] - player.getPos()[1]) ** 2)
+        distance = sqrt((self.pos[0] - player.getPos()[0]) ** 2 + (self.pos[1] - player.getPos()[1]) ** 2)
         eff_radius = (self.hit_radius * sqrt(self.size[0] ** 2 + self.size[1] ** 2) + player.hit_radius)
         if distance < eff_radius:
             player.subHp(self.damage)
@@ -40,10 +40,10 @@ class Bullet:
 
 class B_trap(Bullet):
     def move(self):
-        self.v = self.v * 0.98
-        self.__pos = (self.__pos[0] + self.v * cos(radians(self.angle)),
-                      self.__pos[1] + self.v * sin(radians(self.angle)))
-        if self.v < 0.01:
+        self.v = self.v * 0.97
+        self.pos = (self.getPos()[0] + self.v * cos(radians(self.angle)),
+                      self.getPos()[1] + self.v * sin(radians(self.angle)))
+        if self.v < 0.1:
             self.alive = False
         # 这里还可以判断出屏反弹
 
@@ -75,7 +75,7 @@ class Player:
         self.power = Power(30)
         self.vmax = 5
         self.__direction = (0, 0)  # 方向是手柄给出的方向，上-，左-
-        self.__pos = (200, y)
+        self.pos = (200, y)
         self.angle = angle  # 0-360,90是向上
         self.hit_radius = 3
         self.type = 'bullet_round'
@@ -85,7 +85,8 @@ class Player:
         self.cards = []
 
     def move(self):
-        self.cd -= 1
+        if self.cd > 0:
+            self.cd -= 1
 
         for card in self.cards:
             if not card.ready():
@@ -94,7 +95,7 @@ class Player:
         if self.__direction == (0, 0):
             pass
         else:
-            current = self.__pos
+            current = self.pos
             direction = self.__direction
             x, y = direction[0], direction[1]
             rmax = 8
@@ -109,10 +110,10 @@ class Player:
                 pos_y = 0 - 150 * (sin(radians(self.angle)) - 1)
             if pos_y > 300 - 150 * (sin(radians(self.angle)) - 1):
                 pos_y = 300 - 150 * (sin(radians(self.angle)) - 1)
-            self.__pos = (pos_x, pos_y)
+            self.pos = (pos_x, pos_y)
 
     def getPos(self):
-        return self.__pos
+        return self.pos
 
     def setDir(self, dir):
         self.__direction = tuple(dir)
@@ -141,16 +142,16 @@ class Player:
         if another == None:
             another = self.enemy
         e_pos = another.getPos()
-        if self.__pos[0] == e_pos[0]:
-            if self.__pos[1] > e_pos[1]:
+        if self.pos[0] == e_pos[0]:
+            if self.pos[1] > e_pos[1]:
                 ang = 270
-            elif self.__pos[1] < e_pos[1]:
+            elif self.pos[1] < e_pos[1]:
                 ang = 90
             else:
                 ang = 0
         else:
-            ang = atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0])) * 180 / pi
-            if e_pos[0] - self.__pos[0] < 0:
+            ang = atan((e_pos[1] - self.pos[1]) / (e_pos[0] - self.pos[0])) * 180 / pi
+            if e_pos[0] - self.pos[0] < 0:
                 ang += 180
         return ang
 
@@ -169,15 +170,15 @@ class Player:
             return self.baseAttack()
 
     def baseAttack(self):
-        bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos)
-        bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos)
-        bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos)
+        bullet1 = Bullet(type=self.type, angle=245, pos=self.pos)
+        bullet2 = Bullet(type=self.type, angle=270, pos=self.pos)
+        bullet3 = Bullet(type=self.type, angle=295, pos=self.pos)
         return bullet1, bullet2, bullet3
 
     def powerAttack(self):
-        bullet1 = Bullet(type=self.type, angle=245, pos=self.__pos, v=3, size=(3, 3))
-        bullet2 = Bullet(type=self.type, angle=270, pos=self.__pos, v=3, size=(3, 3))
-        bullet3 = Bullet(type=self.type, angle=295, pos=self.__pos, v=3, size=(3, 3))
+        bullet1 = Bullet(type=self.type, angle=245, pos=self.pos, v=3, size=(3, 3))
+        bullet2 = Bullet(type=self.type, angle=270, pos=self.pos, v=3, size=(3, 3))
+        bullet3 = Bullet(type=self.type, angle=295, pos=self.pos, v=3, size=(3, 3))
         return bullet1, bullet2, bullet3
 
     def superAttack(self):
@@ -191,10 +192,11 @@ class Player:
             self.cd = self.cards[i].silent
 
     def run_card(self):
+        b_lst = []
         for card in self.cards:
             if card.on:
-                card.run()
-        return
+                b_lst += card.run()
+        return b_lst
 
 
 class P_Round(Player):
@@ -299,9 +301,10 @@ class C_flower(Card):
         if self.cd == 0:
             self.cd = 225
             self.on = True
+            self.time = 1
             return
 
-        if self.time == 46:
+        if self.time == 16:
             self.on = False
 
         self.time += 1
@@ -339,7 +342,7 @@ class C_trap(Card):
                 b_lst.append(
                     B_trap(type=bullet_round, pos=self.master.getPos(),
                            angle=self.master.angle + random.uniform(-60, 60),
-                           v=random.uniform(3, 5)))
+                           v=random.uniform(8, 15)))
         return b_lst
 
 

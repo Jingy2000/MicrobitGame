@@ -21,7 +21,7 @@ r_R = K_LEFT
 # 获取手柄数据
 def conv(data):
     if len(data) != 9:
-        print('aaa' + str(data))
+        print('aaa' + str(data), end='')
         return None, None
     x, y = data[5] + data[6] / 256, data[7] + data[8] / 256
     x = round(x - 8)
@@ -65,7 +65,7 @@ def main():
     player_blue.set_enemy(player_red)
 
     player_red.cards.append(C_flower(player_red))
-    player_blue.cards.append(C_chain(player_blue))
+    player_blue.cards.append(C_trap(player_blue))
 
     bullet_list_red = []
     bullet_list_blue = []
@@ -81,7 +81,7 @@ def main():
     last = [[0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]]
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(30)
+        FPSclock.tick(15)
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
@@ -123,6 +123,16 @@ def main():
                         bullet_list_blue.append(bullet)
             b_A_down = False
 
+        # card的子弹输出
+        bs = player_red.run_card()
+        if bs != None:
+            for bullet in bs:
+                bullet_list_red.append(bullet)
+        bs = player_blue.run_card()
+        if bs != None:
+            for bullet in bs:
+                bullet_list_blue.append(bullet)
+
         # card释放
         if r_joypadKey[4]:
             player_red.use_card(0)
@@ -158,7 +168,12 @@ def main():
         pass
 
         # *子弹存活判定(?)
-        pass
+        for bullet in bullet_list_red:
+            if not bullet.is_alive():
+                bullet_list_red.remove(bullet)
+        for bullet in bullet_list_blue:
+            if not bullet.is_alive():
+                bullet_list_blue.remove(bullet)
 
         # 子弹与人物的碰撞判定
         for bullet in bullet_list_red:

@@ -140,6 +140,6 @@ while not (button_a.get_presses() + button_b.get_presses()):
     data2 = values(23)
     uart.write(data1 + bytes([9]) + data2 + b'\n')  # sep = 9!!!
     display.show(Image.ANGRY)
-    sleep(10)
+    sleep(20)
 display.scroll("OVER!")
 display.clear()
