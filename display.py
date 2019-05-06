@@ -22,31 +22,20 @@ def display(player1, player2, bulletList1, bulletList2):
     p1_oppos = (785 - player1.getPos()[0], 585 - player1.getPos()[1])  # 镜像位置
     p2_oppos = (785 - player2.getPos()[0], 585 - player2.getPos()[1])
 
-    hp_img = pygame.image.load("./image source/hpc.jpg")
-    hp_img = pygame.transform.scale(hp_img, (202, 27))
     hp1_img = pygame.image.load("./image source/hp1.jpg")
-    hp1_img = pygame.transform.scale(hp1_img, (2 * player1.hp, 25))
+    hp1_img = pygame.transform.scale(hp1_img, (4, 594 * player1.hp / 100))
     hp2_img = pygame.image.load("./image source/hp2.jpg")
-    hp2_img = pygame.transform.scale(hp2_img, (2 * player2.hp, 25))
+    hp2_img = pygame.transform.scale(hp2_img, (4, 594 * player2.hp / 100))
 
     screen.blit(background, (0, 0))  # 绘制背景
 
-    screen.blit(hp_img, (10, 10))
-    screen.blit(hp1_img, (11, 11))
-    screen.blit(hp_img, (10, 563))
-    screen.blit(hp2_img, (11, 564))
-    screen.blit(hp_img, (574, 10))
-    screen.blit(hp2_img, (575, 11))
-    screen.blit(hp_img, (574, 563))
-    screen.blit(hp1_img, (575, 564))
-
+    screen.blit(hp1_img, (394, 3))
+    screen.blit(hp2_img, (406, 3))
 
     screen.blit(p1_img, p1_pos)  # p1
     screen.blit(p1_img, p1_oppos)  # p1镜像
     screen.blit(p2_img, p2_pos)
     screen.blit(p2_img, p2_oppos)
-
-
 
     for bullet in bulletList1:
         blt_pos = (bullet.getPos()[0] - 10, bullet.getPos()[1] - 10)
