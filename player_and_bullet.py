@@ -149,7 +149,9 @@ class Player:
             else:
                 ang = 0
         else:
-            ang = (atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0])) * 180 / pi) % 180 + 180
+            ang = atan((e_pos[1] - self.__pos[1]) / (e_pos[0] - self.__pos[0])) * 180 / pi
+            if e_pos[0] - self.__pos[0] < 0:
+                ang += 180
         return ang
 
         # 返回三个子弹，分别朝三个方向发射/跟多攻击模式等着子弹来完成
@@ -272,10 +274,11 @@ class P_Square(Player):
 
 
 class Card:
-    def __init__(self):
+    def __init__(self, master):
         self.time = 0
         self.cd = 0
         self.on = False
+        self.master = master
 
     def ready(self):
         return self.cd == 0
@@ -288,8 +291,8 @@ class Card:
 
 
 class C_flower(Card):
-    def __init__(self):
-        Card.__init__(self)
+    def __init__(self, master):
+        Card.__init__(self, master)
         self.silent = 60
 
     def run(self):
@@ -307,7 +310,85 @@ class C_flower(Card):
             for i in range(6):
                 for j in range(8):
                     b_lst.append(
-                        Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + i * 9 + j * 45, v=5 + i * 3))
+                        Bullet(type=bullet_round, pos=self.master.getPos(), angle=self.master.angle + i * 9 + j * 45,
+                               v=5 + i * 3))
                     b_lst.append(
-                        Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle - i * 9 + j * 45, v=5 + i * 3))
+                        Bullet(type=bullet_round, pos=self.master.getPos(), angle=self.master.angle - i * 9 + j * 45,
+                               v=5 + i * 3))
+        return b_lst
+
+
+class C_trap(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 10
+
+    def run(self):
+        if self.cd == 0:
+            self.cd = 150
+            self.on = True
+            return
+
+        if self.time == 11:
+            self.on = False
+
+        self.time += 1
+        b_lst = []
+        if self.time % 5 == 0:
+            for i in range(10):
+                b_lst.append(
+                    B_trap(type=bullet_round, pos=self.master.getPos(),
+                           angle=self.master.angle + random.uniform(-60, 60),
+                           v=random.uniform(3, 5)))
+        return b_lst
+
+
+class C_spark(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 10
+
+    def run(self):
+        if self.cd == 0:
+            self.cd = 150
+            self.on = True
+            return
+
+        if self.time == 11:
+            self.on = False
+
+        self.time += 1
+        b_lst = []
+        if (self.time % 5 == 0):
+            for i in range(10):
+                b_lst.append(
+                    B_trap(type=bullet_round, pos=self.master.getPos(),
+                           angle=self.master.angle + random.uniform(-60, 60),
+                           v=random.uniform(3, 5)))
+        return b_lst
+
+
+class C_chain(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 60
+
+    def run(self):
+        if self.cd == 0:
+            self.cd = 200
+            self.on = True
+            return
+
+        if self.time == 46:
+            self.on = False
+
+        self.time += 1
+        b_lst = []
+        if (self.time % 10 == 0):
+            for i in range(10):
+                b_lst.append(
+                    Bullet(type=bullet_round,
+                           pos=(self.master.getPos()[0] + ((self.time // 10) - 1) * 10, self.master.getPos()[1]),
+                           angle=self.master.angle,
+                           v=20))
         return b_lst

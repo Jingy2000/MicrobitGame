@@ -4,7 +4,7 @@ import re
 
 SEP = bytes([9])
 
-ser = serial.Serial('COM3', 9600, timeout=0)
+ser = serial.Serial('COM3', 19200, timeout=0)
 while True:
     time.sleep(0.03)
     temp = ser.read(1000)

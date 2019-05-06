@@ -21,20 +21,30 @@ r_R = K_LEFT
 # 获取手柄数据
 def conv(data):
     if len(data) != 9:
+        print('aaa' + str(data))
         return None, None
     x, y = data[5] + data[6] / 256, data[7] + data[8] / 256
     x = round(x - 8)
     y = round(8 - y)
+    r = (x * x + y * y) ** 0.5
+    if r <= 4:
+        x = 0
+        y = 0
+    else:
+        x = x / r * 8
+        y = y / r * 8
     return [x, y], data[:5]
 
 
 def getValue(ser):
-    temp = ser.read(100)  # 开始的时候mb一定要重启，避免垃圾数据的残留，就要卡很久了....
+    temp = ser.read(100)  # 开始的时候mb一定要重启，避免垃圾数据的残留，就要ka....
     valueList = temp.split(b'\n')[:-1]  # 舍弃最后一个残缺的
     if not valueList:  # 如果是空的，说明数据get的少了
+        print('empty valuelist: ' + str(valueList))
         return
     values = valueList[-1]
     if not SEP in values:
+        print('no sep: ' + str(values))
         return
     data1 = list(values.split(SEP)[0])
     data2 = list(values.split(SEP)[1])
@@ -49,10 +59,14 @@ def getValue(ser):
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = P_Square(20, 90)
+    player_red = P_Round(20, 90)
     player_blue = P_Round(580, 270)  # 地图高度这个参数
     player_red.set_enemy(player_blue)
     player_blue.set_enemy(player_red)
+
+    player_red.cards.append(C_flower(player_red))
+    player_blue.cards.append(C_chain(player_blue))
+
     bullet_list_red = []
     bullet_list_blue = []
 
@@ -62,12 +76,12 @@ def main():
     init()
 
     FPSclock = time.Clock()
-    ser = serial.Serial('COM3', baudrate=19200, timeout=0)
+    ser = serial.Serial('COM4', baudrate=19200, timeout=0)
 
     last = [[0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]]
 
     while player_blue.is_alive() and player_red.is_alive():
-        FPSclock.tick(10)
+        FPSclock.tick(30)
         # 接受指令
         key_pressed = key.get_pressed()
         if key_pressed[K_ESCAPE]:
@@ -80,7 +94,7 @@ def main():
         r_joypadStick, r_joypadKey, b_joypadStick, b_joypadKey = values
         last = values
 
-        # 人物射击
+        # 人物基本攻击和蓄力攻击
         if r_joypadKey[3]:
             r_A_down = True
             bs = player_red.power_up()
@@ -108,6 +122,12 @@ def main():
                     for bullet in bs:
                         bullet_list_blue.append(bullet)
             b_A_down = False
+
+        # card释放
+        if r_joypadKey[4]:
+            player_red.use_card(0)
+        if b_joypadKey[4]:
+            player_blue.use_card(0)
 
         #  移动
         player_red.setDir(r_joypadStick)
