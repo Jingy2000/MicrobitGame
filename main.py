@@ -53,6 +53,10 @@ def main():
     player_blue = P_Round(580, 270)  # 地图高度这个参数
     player_red.set_enemy(player_blue)
     player_blue.set_enemy(player_red)
+
+    player_red.cards.append(C_flower(player_red))
+    player_blue.cards.append(C_chain(player_blue))
+
     bullet_list_red = []
     bullet_list_blue = []
 
