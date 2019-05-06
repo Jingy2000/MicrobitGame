@@ -59,8 +59,8 @@ def getValue(ser):
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = P_Round(20, 90)
-    player_blue = P_Round(580, 270)  # 地图高度这个参数
+    player_red = P_Delta(20, 90)
+    player_blue = P_Square(580, 270)  # 地图高度这个参数
     player_red.set_enemy(player_blue)
     player_blue.set_enemy(player_red)
 
@@ -188,9 +188,9 @@ def main():
         do_exit()
 
     if not player_blue.is_alive():
-        print('blue die!')
-    if not player_red.is_alive():
         print('red die!')
+    if not player_red.is_alive():
+        print('blue die!')
 
 
 # 当前程序为主程序时调用

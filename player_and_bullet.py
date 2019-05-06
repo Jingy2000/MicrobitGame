@@ -43,7 +43,7 @@ class B_trap(Bullet):
         self.v = self.v * 0.97
         self.pos = (self.getPos()[0] + self.v * cos(radians(self.angle)),
                       self.getPos()[1] + self.v * sin(radians(self.angle)))
-        if self.v < 0.1:
+        if self.v < 0.01:
             self.alive = False
         # 这里还可以判断出屏反弹
 
@@ -330,19 +330,20 @@ class C_trap(Card):
         if self.cd == 0:
             self.cd = 150
             self.on = True
+            self.time=1
             return
 
-        if self.time == 11:
+        if self.time == 31:
             self.on = False
 
         self.time += 1
         b_lst = []
-        if self.time % 5 == 0:
+        if self.time % 10 == 0:
             for i in range(10):
                 b_lst.append(
                     B_trap(type=bullet_round, pos=self.master.getPos(),
                            angle=self.master.angle + random.uniform(-60, 60),
-                           v=random.uniform(8, 15)))
+                           v=random.uniform(5, 15)))
         return b_lst
 
 
