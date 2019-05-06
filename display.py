@@ -50,20 +50,20 @@ def display(player1, player2, bulletList1, bulletList2):
 
     for bullet in bulletList1:
         blt_pos = (bullet.getPos()[0] - 10, bullet.getPos()[1] - 10)
-        blt_oppos = (790 - blt_pos[0], 590 - blt_pos[1])  # 子弹的镜像位置
+        blt_oppos = (790 - bullet.getPos()[0], 590 - bullet.getPos()[1])  # 子弹的镜像位置
         blt_img = pygame.image.load("./image source/bullet22.jpg")  # 之后可以加子弹类型判断图片
         blt_img = pygame.transform.scale(blt_img, (20, 20))  # 大小
         # blt_img = pygame.transform.rotate(blt_img, -bullet.angle)  # 旋转
-        screen.blit(blt_img, bullet.getPos())
+        screen.blit(blt_img, blt_pos)
         # blt_img = pygame.transform.rotate(blt_img, 180)  # 比刚才那个再转180°
         screen.blit(blt_img, blt_oppos)
     for bullet in bulletList2:
         blt_pos = (bullet.getPos()[0] - 10, bullet.getPos()[1] - 10)
-        blt_oppos = (790 - blt_pos[0], 590 - blt_pos[1])  # 子弹的镜像位置
+        blt_oppos = (790 - bullet.getPos()[0], 590 - bullet.getPos()[1])  # 子弹的镜像位置
         blt_img = pygame.image.load("./image source/bullet11.jpg")
         blt_img = pygame.transform.scale(blt_img, (20, 20))
         # blt_img = pygame.transform.rotate(blt_img, - bullet.angle)
-        screen.blit(blt_img, bullet.getPos())
+        screen.blit(blt_img, blt_pos)
         # blt_img = pygame.transform.rotate(blt_img, 180)
         screen.blit(blt_img, blt_oppos)
 
