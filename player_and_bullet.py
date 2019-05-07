@@ -205,8 +205,9 @@ class P_Round(Player):
         self.cd = 10
         for i in range(2, 5):
             b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim(), v=(i + 1) * 2))
-            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim() + 15, v=(i + 1) * 2))
-            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim() - 15, v=(i + 1) * 2))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim() + 30, v=(i + 1) * 2))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim() - 30
+                                , v=(i + 1) * 2))
         return b_lst
 
     def powerAttack(self):
@@ -299,12 +300,12 @@ class C_flower(Card):
 
     def run(self):
         if self.cd == 0:
-            self.cd = 225
+            self.cd = 200
             self.on = True
             self.time = 1
             return
 
-        if self.time == 16:
+        if self.time == 31:
             self.on = False
 
         self.time += 1
@@ -339,7 +340,7 @@ class C_trap(Card):
         self.time += 1
         b_lst = []
         if self.time % 10 == 0:
-            for i in range(10):
+            for i in range(20):
                 b_lst.append(
                     B_trap(type=bullet_round, pos=self.master.getPos(),
                            angle=self.master.angle + random.uniform(-60, 60),
@@ -381,6 +382,7 @@ class C_chain(Card):
         if self.cd == 0:
             self.cd = 200
             self.on = True
+            self.time=0
             return
 
         if self.time == 46:
@@ -392,7 +394,12 @@ class C_chain(Card):
             for i in range(10):
                 b_lst.append(
                     Bullet(type=bullet_round,
-                           pos=(self.master.getPos()[0] + ((self.time // 10) - 1) * 10, self.master.getPos()[1]),
+                           pos=(self.master.getPos()[0] + ((self.time // 10) - 1) * 50, self.master.getPos()[1]),
                            angle=self.master.angle,
-                           v=20))
+                           v=(i+3)*1.5))
+                b_lst.append(
+                    Bullet(type=bullet_round,
+                           pos=(self.master.getPos()[0] - ((self.time // 10) - 1) * 50, self.master.getPos()[1]),
+                           angle=self.master.angle,
+                           v=(i + 3) * 1.5))
         return b_lst

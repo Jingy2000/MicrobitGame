@@ -59,12 +59,12 @@ def getValue(ser):
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = P_Delta(20, 90)
+    player_red = P_Round(20, 90)
     player_blue = P_Square(580, 270)  # 地图高度这个参数
     player_red.set_enemy(player_blue)
     player_blue.set_enemy(player_red)
 
-    player_red.cards.append(C_flower(player_red))
+    player_red.cards.append(C_chain(player_red))
     player_blue.cards.append(C_trap(player_blue))
 
     bullet_list_red = []
