@@ -3,9 +3,7 @@ from pygame.locals import *
 
 
 def do_exit():
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            exit()  # 为了防止死循环而写的退出函数，可以在主循环里调用
+    pass  # 为了防止死循环而写的退出函数，可以在主循环里调用
 
 
 def display(player1, player2, bulletList1, bulletList2):
