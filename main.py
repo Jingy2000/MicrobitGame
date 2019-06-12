@@ -8,9 +8,11 @@ from pynput import keyboard
 # import serial
 # import re
 
-SEP = bytes([9])
+# SEP = bytes([9])
 
-Player_Maxspeed = 8
+Smooth_Multi = 1
+
+Player_Maxspeed = 16 / Smooth_Multi
 
 # b_A = K_f
 # b_B = K_g
@@ -18,7 +20,7 @@ Player_Maxspeed = 8
 # b_R = K_d
 # b_U = K_w
 # b_D = K_s
-#
+
 # r_A = K_COMMA
 # r_B = K_PERIOD
 # r_L = K_LEFT
@@ -32,6 +34,7 @@ b_L = 'a'
 b_R = 'd'
 b_U = 'w'
 b_D = 's'
+b_S = 'c'
 
 r_A = ','
 r_B = '.'
@@ -39,9 +42,10 @@ r_L = 'left'
 r_R = 'right'
 r_U = 'up'
 r_D = 'down'
+r_S = '/'
 
 # using_keys = [K_w, K_a, K_s, K_d, K_f, K_g, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA]
-using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right']
+using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/']
 pressing = {k: 0 for k in using_keys}
 
 
@@ -66,21 +70,21 @@ def on_release(key):
 
 
 # 获取手柄数据
-def conv(data):
-    if len(data) != 9:
-        print('aaa' + str(data), end='')
-        return None, None
-    x, y = data[5] + data[6] / 256, data[7] + data[8] / 256
-    x = round(x - 8)
-    y = round(8 - y)
-    r = (x * x + y * y) ** 0.5
-    if r <= 4:
-        x = 0
-        y = 0
-    else:
-        x = x / r * 8
-        y = y / r * 8
-    return [x, y], data[:5]
+# def conv(data):
+#     if len(data) != 9:
+#         print('aaa' + str(data), end='')
+#         return None, None
+#     x, y = data[5] + data[6] / 256, data[7] + data[8] / 256
+#     x = round(x - 8)
+#     y = round(8 - y)
+#     r = (x * x + y * y) ** 0.5
+#     if r <= 4:
+#         x = 0
+#         y = 0
+#     else:
+#         x = x / r * 8
+#         y = y / r * 8
+#     return [x, y], data[:5]
 
 
 # def getValue(ser):
@@ -107,12 +111,12 @@ def conv(data):
 # ----------------------------MAIN--------------------------------
 def main():
     player_red = P_Square(20, 90)
-    player_blue = P_Square(580, 270)  # 地图高度这个参数
+    player_blue = P_Round(580, 270)  # 地图高度这个参数
     player_red.set_enemy(player_blue)
     player_blue.set_enemy(player_red)
 
-    player_red.cards.append(C_spark(player_red))
-    player_blue.cards.append(C_spark(player_blue))
+    player_red.cards.append(C_spark_focus(player_red))
+    player_blue.cards.append(C_chain(player_blue))
 
     bullet_list_red = []
     bullet_list_blue = []
@@ -137,8 +141,7 @@ def main():
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         # listener.run()
         while player_blue.is_alive() and player_red.is_alive():
-            FPSclock.tick(15)
-            key.set_repeat(10, 10)
+            FPSclock.tick(15 * Smooth_Multi)
             # 接受指令
             # pressing = key.get_pressed()
             # if key_pressed[K_ESCAPE]:
@@ -173,6 +176,9 @@ def main():
             if (r_vx != 0) and (r_vy != 0):
                 r_vx *= 0.5 ** 0.5
                 r_vy *= 0.5 ** 0.5
+            if pressing[r_S]:
+                r_vx *= 0.5
+                r_vy *= 0.5
 
             if pressing[b_U] and not pressing[b_D]:
                 b_vy = -Player_Maxspeed
@@ -185,6 +191,9 @@ def main():
             if (b_vx != 0) and (b_vy != 0):
                 b_vx *= 0.5 ** 0.5
                 b_vy *= 0.5 ** 0.5
+            if pressing[b_S]:
+                b_vx *= 0.5
+                b_vy *= 0.5
 
             # 人物基本攻击和蓄力攻击
             if pressing[r_A]:

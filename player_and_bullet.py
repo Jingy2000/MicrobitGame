@@ -1,17 +1,19 @@
 from math import sin, cos, sqrt, pi, radians, atan
+from main import Smooth_Multi
 from image_type import *
 import random
 
 
 class Bullet:
-    def __init__(self, type, pos, angle, v=10.0, size=(1, 1), rebound=False, damage=10):
+    def __init__(self, type, pos, angle, v=10.0, size=(1, 1), rebound=0, damage=10, life=300):
         self.type = type
         self.pos = pos
         self.angle = angle
-        self.v = v
+        self.v = v / Smooth_Multi
         self.size = size
         self.rebound = rebound
         self.damage = damage
+        self.life = life
 
         self.hit_radius = 5
 
@@ -22,8 +24,30 @@ class Bullet:
         return self.pos
 
     def move(self):
+        self.life -= 1
+        if self.life <= 0:
+            self.alive = False
         self.pos = (self.pos[0] + self.v * cos(radians(self.angle)),
                     self.pos[1] + self.v * sin(radians(self.angle)))
+        if self.rebound > 0:
+            x, y = self.pos
+            if x > 400:
+                x = 800 - x
+                self.angle = 180 - self.angle
+                self.rebound -= 1
+            if x < 0:
+                x = -x
+                self.angle = 180 - self.angle
+                self.rebound -= 1
+            if y > 800:
+                y = 1600 - y
+                self.angle = -self.angle
+                self.rebound -= 1
+            if y < 0:
+                y = -y
+                self.angle = -self.angle
+                self.rebound -= 1
+            self.pos = (x, y)
         # 这里还可以判断出屏反弹
 
     def hit(self, player):
@@ -50,6 +74,11 @@ class B_trap(Bullet):
         if self.v < 0.01:
             self.alive = False
         # 这里还可以判断出屏反弹
+
+
+class B_curve(Bullet):
+    def __init__(self):
+        pass
 
 
 class Power:
@@ -81,7 +110,7 @@ class Player:
         self.__direction = (0, 0)  # 方向是手柄给出的方向，上-，左-
         self.pos = (200, y)
         self.angle = angle  # 0-360,90是向上
-        self.hit_radius = 3
+        self.hit_radius = 1
         self.type = 'bullet_round'
         self.enemy = None
         self.cd = 0
@@ -144,8 +173,8 @@ class Player:
 
     def aim(self, another=None):
         if another == None:
-            another = self.enemy
-        e_pos = another.getPos()
+            another = self.enemy.getPos()
+        e_pos = another
         if self.pos[0] == e_pos[0]:
             if self.pos[1] > e_pos[1]:
                 ang = 270
@@ -204,9 +233,14 @@ class Player:
 
 
 class P_Round(Player):
+    def __init__(self, y, angle):
+        self.base_cd = 15
+        self.power_cd = 15
+        Player.__init__(self, y, angle)
+
     def baseAttack(self):
         b_lst = []
-        self.cd = 10
+        self.cd = self.base_cd * Smooth_Multi
         for i in range(2, 5):
             b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim(), v=(i + 1) * 2))
             b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.aim() + 45, v=(i + 1) * 2))
@@ -216,20 +250,18 @@ class P_Round(Player):
 
     def powerAttack(self):
         b_lst = []
-        self.cd = 5
+        self.cd = self.power_cd * Smooth_Multi
         for i in range(8):
             b_lst.append(Bullet(type=bullet_round,
-                                pos=(self.getPos()[0] + 20 * cos(2 * pi * i / 8),
-                                     self.getPos()[1] + 20 * sin(2 * pi * i / 8)),
-                                angle=self.aim() + 20, v=10))
+                                pos=(self.getPos()),
+                                angle=self.aim() + 20, v=5 + i))
             b_lst.append(Bullet(type=bullet_round,
                                 pos=(self.getPos()[0] + 20 * cos(2 * pi * i / 8),
                                      self.getPos()[1] + 20 * sin(2 * pi * i / 8)),
                                 angle=self.aim(), v=5))
             b_lst.append(Bullet(type=bullet_round,
-                                pos=(self.getPos()[0] + 20 * cos(2 * pi * i / 8),
-                                     self.getPos()[1] + 20 * sin(2 * pi * i / 8)),
-                                angle=self.aim() - 20, v=10))
+                                pos=(self.getPos()),
+                                angle=self.aim() - 20, v=5 + i))
         return b_lst
 
     def superAttack(self):
@@ -237,17 +269,22 @@ class P_Round(Player):
 
 
 class P_Delta(Player):
+    def __init__(self, y, angle):
+        self.base_cd = 10
+        self.power_cd = 15
+        Player.__init__(self, y, angle)
+
     def baseAttack(self):
         b_lst = []
-        self.cd = 15
+        self.cd = self.base_cd * Smooth_Multi
         for i in range(7):
-            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + (i - 3) * 15, v=10))
+            b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + (i - 3) * 12, v=10))
         return b_lst
 
     def powerAttack(self):
         b_lst = []
-        self.cd = 15
-        for i in range(25):
+        self.cd = self.power_cd * Smooth_Multi
+        for i in range(30):
             b_lst.append(Bullet(type=bullet_round, pos=self.getPos(), angle=self.angle + random.uniform(-60, 60),
                                 v=random.uniform(5, 15)))
         return b_lst
@@ -257,10 +294,15 @@ class P_Delta(Player):
 
 
 class P_Square(Player):
+    def __init__(self, y, angle):
+        self.base_cd = 5
+        self.power_cd = 15
+        Player.__init__(self, y, angle)
+
     def baseAttack(self):
         b_lst = []
-        self.cd = 5
-        for i in range(5):
+        self.cd = self.base_cd * Smooth_Multi
+        for i in range(3):
             b_lst.append(
                 Bullet(type=bullet_round, pos=(self.getPos()[0] + (i - 1) * 10, self.getPos()[1]), angle=self.angle,
                        v=20))
@@ -268,7 +310,7 @@ class P_Square(Player):
 
     def powerAttack(self):
         b_lst = []
-        self.cd = 15
+        self.cd = self.power_cd * Smooth_Multi
         for i in range(10):
             b_lst.append(Bullet(type=bullet_round, pos=(self.getPos()[0] + i * 10, self.getPos()[1]), angle=self.angle,
                                 v=(16 - i) * 1))
@@ -283,6 +325,8 @@ class P_Square(Player):
 class Card:
     def __init__(self, master):
         self.time = 0
+        self.max_cd = 0
+        self.duration = 0
         self.cd = 0
         self.on = False
         self.master = master
@@ -294,27 +338,33 @@ class Card:
         self.cd -= 1
 
     def run(self):
+        if self.cd == 0:
+            self.cd = self.max_cd
+            self.on = True
+            self.time = 1
+            return []
+
+        if self.time == self.duration + 1:
+            self.on = False
+            return []
+
+        self.time += 1
+        return self.shoot()
+
+    def shoot(self):
         pass
 
 
 class C_flower(Card):
     def __init__(self, master):
         Card.__init__(self, master)
-        self.silent = 60
+        self.silent = 60 * Smooth_Multi
+        self.max_cd = 180 * Smooth_Multi
+        self.duration = 30 * Smooth_Multi
 
-    def run(self):
-        if self.cd == 0:
-            self.cd = 125
-            self.on = True
-            self.time = 1
-            return
-
-        if self.time == 31:
-            self.on = False
-
-        self.time += 1
+    def shoot(self):
         b_lst = []
-        if (self.time % 15 == 0):
+        if self.time % (15 * Smooth_Multi) == 0:
             for i in range(6):
                 for j in range(8):
                     b_lst.append(
@@ -329,21 +379,13 @@ class C_flower(Card):
 class C_trap(Card):
     def __init__(self, master):
         Card.__init__(self, master)
-        self.silent = 10
+        self.silent = 0 * Smooth_Multi
+        self.max_cd = 180 * Smooth_Multi
+        self.duration = 30 * Smooth_Multi
 
-    def run(self):
-        if self.cd == 0:
-            self.cd = 150
-            self.on = True
-            self.time = 1
-            return
-
-        if self.time == 31:
-            self.on = False
-
-        self.time += 1
+    def shoot(self):
         b_lst = []
-        if self.time % 10 == 0:
+        if self.time % (10 * Smooth_Multi) == 0:
             for i in range(12):
                 b_lst.append(
                     B_trap(type=bullet_round, pos=self.master.getPos(),
@@ -355,32 +397,88 @@ class C_trap(Card):
 class C_spark(Card):
     def __init__(self, master):
         Card.__init__(self, master)
-        self.silent = 10
+        self.silent = 60 * Smooth_Multi
+        self.max_cd = 180 * Smooth_Multi
+        self.duration = 30 * Smooth_Multi
 
-    def run(self):
-        if self.cd == 0:
-            self.cd = 200
-            self.on = True
-            self.time = 0
-            return
-
-        if self.time == 31:
-            self.on = False
-
-        self.time += 1
+    def shoot(self):
         b_lst = []
-        if (self.time < 10) and (self.time % 2 == 0):
+        if (self.time < 10 * Smooth_Multi) and (self.time % (2 * Smooth_Multi) == 0):
             for i in range(8):
                 b_lst.append(B_trap(type=bullet_round, pos=self.master.getPos(),
-                                    angle=self.master.angle + i * 45,
+                                    angle=self.master.angle + i * 45 + self.time * 10,
                                     v=15, decay=0.8))
-        if self.time == 20:
+        if self.time == 20 * Smooth_Multi:
             for i in range(5):
                 for j in range(15):
                     b_lst.append(
                         Bullet(type=bullet_round, pos=(self.master.getPos()[0] + (i - 2) * 5, self.master.getPos()[1]),
                                angle=self.master.angle,
                                v=j * 3 + 10))
+        return b_lst
+
+
+class C_spark_aim(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 60 * Smooth_Multi
+        self.max_cd = 180 * Smooth_Multi
+        self.duration = 40 * Smooth_Multi
+
+    def shoot(self):
+        b_lst = []
+        if (self.time < 10 * Smooth_Multi) and (self.time % (2 * Smooth_Multi) == 0):
+            for i in range(8):
+                b_lst.append(B_trap(type=bullet_round, pos=self.master.getPos(),
+                                    angle=self.master.angle + i * 45 + self.time * 10,
+                                    v=15, decay=0.8))
+        if (self.time > 19 * Smooth_Multi) and (self.time % (10 * Smooth_Multi) == 0):
+            for j in range(15):
+                b_lst.append(
+                    Bullet(type=bullet_round, pos=self.master.getPos(),
+                           angle=self.master.aim(),
+                           v=j * 3 + 5))
+        return b_lst
+
+
+class C_spark_focus(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 60 * Smooth_Multi
+        self.max_cd = 180 * Smooth_Multi
+        self.duration = 50 * Smooth_Multi
+        self.f_point = (0, 0)
+
+    def shoot(self):
+        b_lst = []
+        if self.time == 2:
+            self.f_point = self.master.getPos()
+        if self.time < 5:
+            for i in range(4):
+                b_lst.append(
+                    Bullet(type=bullet_round, pos=(self.f_point[0] + 10 * (self.time - 2) * cos(i * pi / 2),
+                                                   self.f_point[1] + 10 * (self.time - 2) * sin(i * pi / 2)),
+                           angle=0,
+                           v=0, life=60))
+        if self.time == 5:
+            for i in range(16):
+                b_lst.append(
+                    Bullet(type=bullet_round, pos=(self.f_point[0] + 10 * (self.time - 2) * cos(i * pi / 8),
+                                                   self.f_point[1] + 10 * (self.time - 2) * sin(i * pi / 8)),
+                           angle=0,
+                           v=0, life=60))
+        if (self.time < 30 * Smooth_Multi) and (self.time > 19 * Smooth_Multi) and (
+                self.time % (2 * Smooth_Multi) == 0):
+            for i in range(8):
+                b_lst.append(B_trap(type=bullet_round, pos=self.master.getPos(),
+                                    angle=self.master.angle + i * 45 + self.time * 10,
+                                    v=15, decay=0.8))
+        if (self.time > 39 * Smooth_Multi) and (self.time % (2 * Smooth_Multi) == 0):
+            for j in range(8):
+                b_lst.append(
+                    Bullet(type=bullet_round, pos=self.master.getPos(),
+                           angle=self.master.aim(self.f_point),
+                           v=j * 5 + 10))
         return b_lst
 
 
@@ -392,30 +490,40 @@ class C_spark(Card):
 class C_chain(Card):
     def __init__(self, master):
         Card.__init__(self, master)
-        self.silent = 60
+        self.silent = 60 * Smooth_Multi
+        self.max_cd = 180 * Smooth_Multi
+        self.duration = 30 * Smooth_Multi
 
-    def run(self):
-        if self.cd == 0:
-            self.cd = 200
-            self.on = True
-            self.time = 0
-            return
-
-        if self.time == 46:
-            self.on = False
-
-        self.time += 1
+    def shoot(self):
         b_lst = []
-        if (self.time % 10 == 0):
+        if self.time % (10 * Smooth_Multi) == 0:
             for i in range(10):
                 b_lst.append(
                     Bullet(type=bullet_round,
-                           pos=(self.master.getPos()[0] + ((self.time // 10) - 1) * 50, self.master.getPos()[1]),
+                           pos=(self.master.getPos()[0] + ((self.time // 10) - 1) * 60, self.master.getPos()[1]),
                            angle=self.master.angle,
                            v=(i + 3) * 1.5))
                 b_lst.append(
                     Bullet(type=bullet_round,
-                           pos=(self.master.getPos()[0] - ((self.time // 10) - 1) * 50, self.master.getPos()[1]),
+                           pos=(self.master.getPos()[0] - ((self.time // 10) - 1) * 60, self.master.getPos()[1]),
                            angle=self.master.angle,
                            v=(i + 3) * 1.5))
+        return b_lst
+
+
+class C_reflect(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 60 * Smooth_Multi
+        self.max_cd = 180 * Smooth_Multi
+        self.duration = 30 * Smooth_Multi
+
+    def shoot(self):
+        b_lst = []
+        if self.time % (10 * Smooth_Multi) == 0:
+            th0 = random.random() * 360
+            for i in range(20):
+                b_lst.append(
+                    Bullet(type=bullet_round, pos=self.master.getPos(), angle=self.master.angle + i * 18 + th0,
+                           v=8, rebound=1))
         return b_lst
