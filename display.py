@@ -48,11 +48,11 @@ def display(player1, player2, bulletList1, bulletList2):
 
     screen.blit(background, (0, 0))  # 绘制背景
 
-    screen.blit(hp1_img, (403, 595 - int(590 * player1.hp / 100)))
-    screen.blit(hp2_img, (390, 595 - int(590 * player2.hp / 100)))
+    screen.blit(hp1_img, (403, 595 - int(590 * player1.hp.ratio())))
+    screen.blit(hp2_img, (390, 595 - int(590 * player2.hp.ratio())))
 
-    screen.blit(mp1_img, (793, 595 - int(590 * player1.energy.ratio())))
-    screen.blit(mp2_img, (0, 595 - int(590 * player2.energy.ratio())))
+    screen.blit(mp1_img, (793, 595 - int(590 * player1.power.ratio())))
+    screen.blit(mp2_img, (0, 595 - int(590 * player2.power.ratio())))
 
     screen.blit(p1_img, p1_pos)  # p1
     screen.blit(p1_img, p1_oppos)  # p1镜像

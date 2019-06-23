@@ -2,7 +2,7 @@ from player_and_bullet import *
 from pygame import K_w, K_a, K_s, K_d, K_f, K_g, K_UP, QUIT, \
     K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA, key, time, init, K_ESCAPE, KEYDOWN, KEYUP
 from pygame import event
-from display import display, do_exit
+from display import display, do_exit, display_init
 from pynput import keyboard
 
 # import serial
@@ -110,13 +110,13 @@ def on_release(key):
 
 # ----------------------------MAIN--------------------------------
 def main():
-    player_red = P_Square(20, 90)
-    player_blue = P_Round(580, 270)  # 地图高度这个参数
+    player_red = P_Shield(20, 90)
+    player_blue = P_Square(580, 270)  # 地图高度这个参数
     player_red.set_enemy(player_blue)
     player_blue.set_enemy(player_red)
 
-    player_red.cards.append(C_spark_focus(player_red))
-    player_blue.cards.append(C_chain(player_blue))
+    player_red.cards.append(C_lock(player_red))
+    player_blue.cards.append(C_spark_aim(player_blue))
 
     bullet_list_red = []
     bullet_list_blue = []
@@ -130,6 +130,7 @@ def main():
     # b_vy = 0
 
     init()
+    display_init()
 
     # key.set_repeat(0, 50)
 
@@ -258,12 +259,12 @@ def main():
             for bullet in bullet_list_blue:
                 x = bullet.getPos()[0]
                 y = bullet.getPos()[1]
-                if x > 400 or x < 0 or y < 0 or y > 800:
+                if x > 400 or x < 0 or y < 0 or y > 600:
                     bullet_list_blue.remove(bullet)
             for bullet in bullet_list_red:
                 x = bullet.getPos()[0]
                 y = bullet.getPos()[1]
-                if x > 400 or x < 0 or y < 0 or y > 800:
+                if x > 400 or x < 0 or y < 0 or y > 600:
                     bullet_list_red.remove(bullet)
 
             # *子弹之间的碰撞判定
