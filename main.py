@@ -118,7 +118,7 @@ def enemy_key_to_byte(keys):
 def my_byte_to_key(byte):
     my_k = [b_A, b_B, b_L, b_R, b_U, b_D, b_S]
     enemy_keys = {}
-    n = ord(byte.decode())
+    n = ord(byte)
     for i in range(7):
         enemy_keys[my_k[i]] = getbit(n, i)
     return enemy_keys
@@ -127,7 +127,7 @@ def my_byte_to_key(byte):
 def enemy_byte_to_key(byte):
     en_k = [r_A, r_B, r_L, r_R, r_U, r_D, r_S]
     enemy_keys = {}
-    n = ord(byte.decode())
+    n = ord(byte)
     for i in range(7):
         enemy_keys[en_k[i]] = getbit(n, i)
     return enemy_keys
@@ -167,7 +167,7 @@ def update_by_net(link, my_keys, frame):
             raise IOError('more than 3 packs lost')
         else:
             for f in range(len(enemy_byte_lst), recv_frame):
-                enemy_byte_lst.append(recv_lst[recv_frame - f + 2])
+                enemy_byte_lst.append(bytes([recv_lst[recv_frame - f + 2]]))
 
     all_keys = {}
     all_keys.update(my_byte_to_key(my_byte_lst[frame]))
