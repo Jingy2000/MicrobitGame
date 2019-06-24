@@ -150,12 +150,6 @@ def update_by_net(link, my_keys, frame):
     except BlockingIOError:
         pass
 
-    while (frame == len(enemy_byte_lst)) and (len(recv_buffer) < 5):
-        try:
-            recv_buffer += link.recv(1024)
-        except BlockingIOError:
-            pass
-
     while len(recv_buffer) >= 5:
         recv_bytes = recv_buffer[:5]
         recv_buffer = recv_buffer[5:]
@@ -168,6 +162,25 @@ def update_by_net(link, my_keys, frame):
         else:
             for f in range(len(enemy_byte_lst), recv_frame):
                 enemy_byte_lst.append(bytes([recv_lst[recv_frame - f + 2]]))
+
+    while frame >= len(enemy_byte_lst):
+        try:
+            recv_buffer += link.recv(1024)
+        except BlockingIOError:
+            pass
+
+        while len(recv_buffer) >= 5:
+            recv_bytes = recv_buffer[:5]
+            recv_buffer = recv_buffer[5:]
+            recv_lst = [i for i in recv_bytes]
+            print(frame, recv_lst)
+            recv_frame = recv_lst[0] * 256 + recv_lst[1]
+
+            if recv_frame > len(enemy_byte_lst) + 2:
+                raise IOError('more than 3 packs lost')
+            else:
+                for f in range(len(enemy_byte_lst), recv_frame):
+                    enemy_byte_lst.append(bytes([recv_lst[recv_frame - f + 2]]))
 
     all_keys = {}
     all_keys.update(my_byte_to_key(my_byte_lst[frame]))
