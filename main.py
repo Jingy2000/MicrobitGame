@@ -59,7 +59,6 @@ else:
 # l_S = 'shift'
 
 
-
 l_keys = {'z': 0, 'x': 1, 'left': 2, 'right': 3, 'up': 4, 'down': 5, 'shift': 6}
 
 # using_keys = [K_w, K_a, K_s, K_d, K_f, K_g, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA]
@@ -235,7 +234,7 @@ def main():
 
             if line_mode:
                 # 这里交换信息
-                link_pressing = update_by_net(link)
+                link_pressing = update_by_net(link, now_pressing)
 
                 pressing_buffer.append(link_pressing)
                 for i in range(max_buffer):
