@@ -46,27 +46,27 @@ r_S = '/'
 
 # using_keys = [K_w, K_a, K_s, K_d, K_f, K_g, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA]
 using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/']
-pressing = {k: 0 for k in using_keys}
+now_pressing = {k: 0 for k in using_keys}
 
 
 def on_press(key):
-    global pressing
+    global now_pressing
     k = None
     if isinstance(key, keyboard.KeyCode):
         k = key.char
     elif isinstance(key, keyboard.Key):
         k = key.name
-    pressing[k] = 1
+    now_pressing[k] = 1
 
 
 def on_release(key):
-    global pressing
+    global now_pressing
     k = None
     if isinstance(key, keyboard.KeyCode):
         k = key.char
     elif isinstance(key, keyboard.Key):
         k = key.name
-    pressing[k] = 0
+    now_pressing[k] = 0
 
 
 # 获取手柄数据
@@ -139,6 +139,9 @@ def main():
     #
     # last = [[0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]]
 
+    max_buffer = 2
+    pressing_buffer = []
+
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         # listener.run()
         while player_blue.is_alive() and player_red.is_alive():
@@ -159,7 +162,17 @@ def main():
             # if eve.type == QUIT:
             #     exit()
 
+            pressing_buffer.append(now_pressing)
+            for i in range(max_buffer):
+                if i == len(pressing_buffer) - 1:
+                    break
+                pressing_buffer[i] = pressing_buffer[i + 1].copy()
+            if len(pressing_buffer) == max_buffer + 1:
+                pressing_buffer.pop()
+
             # 移动处理
+
+            pressing = pressing_buffer[0]
 
             r_vx = 0
             r_vy = 0
@@ -241,7 +254,7 @@ def main():
             if pressing[b_B]:
                 player_blue.use_card(0)
 
-            #  移动
+            # 移动
             # print(pressing)
             player_red.setDir((r_vx, r_vy))
             player_blue.setDir((b_vx, b_vy))
@@ -270,6 +283,8 @@ def main():
             # *子弹之间的碰撞判定
             pass
 
+            # 消弹圈
+
             # *子弹存活判定(?)
             for bullet in bullet_list_red:
                 if not bullet.is_alive():
@@ -290,6 +305,7 @@ def main():
             display(player_red, player_blue, bullet_list_red, bullet_list_blue)
             do_exit()
 
+    # 把这个改成更科学一点的显示
     if not player_blue.is_alive():
         print('red die!')
     if not player_red.is_alive():
