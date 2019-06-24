@@ -4,36 +4,69 @@ from pygame import K_w, K_a, K_s, K_d, K_f, K_g, K_UP, QUIT, \
 from pygame import event
 from display import display, do_exit, display_init
 from pynput import keyboard
+from functools import reduce
 import socket
 
 # import serial
 # import re
 
-line_mode = False
-is_server = False
+line_mode = True
+is_server = True
 
 Smooth_Multi = 1
 Player_Maxspeed = 10 / Smooth_Multi
 
-b_A = 'f'
-b_B = 'g'
-b_L = 'a'
-b_R = 'd'
-b_U = 'w'
-b_D = 's'
-b_S = 'c'
+if line_mode:
+    b_A = 'z'
+    b_B = 'x'
+    b_L = 'left'
+    b_R = 'right'
+    b_U = 'up'
+    b_D = 'down'
+    b_S = 'shift'
 
-r_A = ','
-r_B = '.'
-r_L = 'left'
-r_R = 'right'
-r_U = 'up'
-r_D = 'down'
-r_S = '/'
+    r_A = 'RA'
+    r_B = 'RB'
+    r_L = 'RL'
+    r_R = 'RR'
+    r_U = 'RU'
+    r_D = 'RD'
+    r_S = 'RS'
+
+else:
+    b_A = 'f'
+    b_B = 'g'
+    b_L = 'a'
+    b_R = 'd'
+    b_U = 'w'
+    b_D = 's'
+    b_S = 'c'
+
+    r_A = ','
+    r_B = '.'
+    r_L = 'left'
+    r_R = 'right'
+    r_U = 'up'
+    r_D = 'down'
+    r_S = '/'
+
+# l_A = 'z'
+# l_B = 'x'
+# l_L = 'left'
+# l_R = 'right'
+# l_U = 'up'
+# l_D = 'down'
+# l_S = 'shift'
+
+
+
+l_keys = {'z': 0, 'x': 1, 'left': 2, 'right': 3, 'up': 4, 'down': 5, 'shift': 6}
 
 # using_keys = [K_w, K_a, K_s, K_d, K_f, K_g, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA]
-using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/']
+
+using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/', 'shift', 'z', 'x']
 now_pressing = {k: 0 for k in using_keys}
+
 
 def line_link():
     if is_server:
@@ -53,6 +86,35 @@ def line_link():
         s.recv(1024)
         print('connection created!')
         return s
+
+
+def getbit(n, i):
+    return (n % 2 ** (i + 1)) // 2 ** i
+
+
+def key_to_byte(my_keys):
+    ktb = [b_A, b_B, b_L, b_R, b_U, b_D, b_S]
+    b_lst = [my_keys[k] for k in ktb]
+    n = reduce(lambda x, y: x * 2 + y, b_lst)
+    return bytes([n])
+
+
+def byte_to_key(enemy_bytes):
+    btk = [r_A, r_B, r_L, r_R, r_U, r_D, r_S]
+    enemy_keys = {}
+    n = ord(enemy_bytes.decode())
+    for i in range(7):
+        enemy_keys[btk[i]] = getbit(n, i)
+    return enemy_keys
+
+
+def update_by_net(link, my_keys):
+    my_bytes = key_to_byte(my_keys)
+    link.send(my_bytes)
+    enemy_bytes = link.recv(1024)
+    enemy_keys = byte_to_key(enemy_bytes)
+    enemy_keys.update(my_keys)
+    return enemy_keys
 
 
 def on_press(key):
@@ -134,11 +196,12 @@ def main():
     # r_vy = 0
     # b_vx = 0
     # b_vy = 0
+    link = None
+    if line_mode:
+        link = line_link()
 
     init()
     display_init()
-    if line_mode:
-        line_link()
 
     # key.set_repeat(0, 50)
 
@@ -170,14 +233,20 @@ def main():
             # if eve.type == QUIT:
             #     exit()
 
-            pressing_buffer.append(now_pressing)
-            for i in range(max_buffer):
-                if i == len(pressing_buffer) - 1:
-                    break
-                pressing_buffer[i] = pressing_buffer[i + 1].copy()
-            if len(pressing_buffer) == max_buffer + 1:
-                pressing_buffer.pop()
-            pressing = pressing_buffer[0]
+            if line_mode:
+                # 这里交换信息
+                link_pressing = update_by_net(link)
+
+                pressing_buffer.append(link_pressing)
+                for i in range(max_buffer):
+                    if i == len(pressing_buffer) - 1:
+                        break
+                    pressing_buffer[i] = pressing_buffer[i + 1].copy()
+                if len(pressing_buffer) == max_buffer + 1:
+                    pressing_buffer.pop()
+                pressing = pressing_buffer[0]
+            else:
+                pressing = now_pressing
 
             # 移动处理
 
