@@ -110,7 +110,10 @@ def byte_to_key(enemy_bytes):
 def update_by_net(link, my_keys):
     my_bytes = key_to_byte(my_keys)
     link.send(my_bytes)
-    enemy_bytes = link.recv(1024)
+    enemy_bytes=b''
+    while enemy_bytes==b'':
+        enemy_bytes = link.recv(1)
+    print(enemy_bytes)
     enemy_keys = byte_to_key(enemy_bytes)
     enemy_keys.update(my_keys)
     return enemy_keys
