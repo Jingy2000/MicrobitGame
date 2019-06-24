@@ -1,7 +1,6 @@
 from player_and_bullet import *
 from pygame import K_w, K_a, K_s, K_d, K_f, K_g, K_UP, QUIT, \
     K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA, key, time, init, K_ESCAPE, KEYDOWN, KEYUP
-from pygame import event
 from display import display, do_exit, display_init
 from pynput import keyboard
 from functools import reduce
@@ -10,7 +9,7 @@ import socket
 # import serial
 # import re
 
-line_mode = True
+line_mode = False
 is_server = True
 
 Smooth_Multi = 1
@@ -66,10 +65,18 @@ l_keys = {'z': 0, 'x': 1, 'left': 2, 'right': 3, 'up': 4, 'down': 5, 'shift': 6}
 using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/', 'shift', 'z', 'x']
 now_pressing = {k: 0 for k in using_keys}
 
+buffer_size = 2
+
+my_byte_lst = [b'\x00' for i in range(buffer_size)]
+enemy_byte_lst = [b'\x00' for i in range(buffer_size)]
+
+log_file = open('log.txt', 'w')
+
 
 def line_link():
     if is_server:
         s = socket.socket()  # 创建 socket 对象
+        s.setblocking(False)
         port = 21001  # 设置端口
         s.bind(('10.3.160.107', port))  # 绑定端口
         s.listen(1)  # 等待客户端连接
@@ -81,6 +88,7 @@ def line_link():
     else:
         port = 47338  # 设置端口号
         s = socket.socket()
+        s.setblocking(False)
         s.connect(('memento.51vip.biz', port))
         s.recv(1024)
         print('connection created!')
@@ -91,32 +99,69 @@ def getbit(n, i):
     return (n % 2 ** (i + 1)) // 2 ** i
 
 
-def key_to_byte(my_keys):
-    ktb = [b_A, b_B, b_L, b_R, b_U, b_D, b_S]
-    b_lst = [my_keys[k] for k in ktb]
+def my_key_to_byte(keys):
+    my_k = [b_A, b_B, b_L, b_R, b_U, b_D, b_S]
+    b_lst = [keys[k] for k in my_k]
     n = reduce(lambda x, y: x * 2 + y, b_lst)
     return bytes([n])
 
 
-def byte_to_key(enemy_bytes):
-    btk = [r_A, r_B, r_L, r_R, r_U, r_D, r_S]
+def enemy_key_to_byte(keys):
+    en_k = [r_A, r_B, r_L, r_R, r_U, r_D, r_S]
+    b_lst = [keys[k] for k in en_k]
+    n = reduce(lambda x, y: x * 2 + y, b_lst)
+    return bytes([n])
+
+
+def my_byte_to_key(byte):
+    my_k = [b_A, b_B, b_L, b_R, b_U, b_D, b_S]
     enemy_keys = {}
-    n = ord(enemy_bytes.decode())
+    n = ord(byte.decode())
     for i in range(7):
-        enemy_keys[btk[i]] = getbit(n, i)
+        enemy_keys[my_k[i]] = getbit(n, i)
     return enemy_keys
 
 
-def update_by_net(link, my_keys):
-    my_bytes = key_to_byte(my_keys)
-    link.send(my_bytes)
-    enemy_bytes=b''
-    while enemy_bytes==b'':
-        enemy_bytes = link.recv(1)
-    print(enemy_bytes)
-    enemy_keys = byte_to_key(enemy_bytes)
-    enemy_keys.update(my_keys)
+def enemy_byte_to_key(byte):
+    en_k = [r_A, r_B, r_L, r_R, r_U, r_D, r_S]
+    enemy_keys = {}
+    n = ord(byte.decode())
+    for i in range(7):
+        enemy_keys[en_k[i]] = getbit(n, i)
     return enemy_keys
+
+
+def update_by_net(link, my_keys, frame):
+    global recv_buffer
+    my_bytes = my_key_to_byte(my_keys)
+    my_byte_lst.append(my_bytes)
+    delayed_frame = frame + 2
+    send_lst = [delayed_frame // 256, delayed_frame % 256, my_bytes]
+    for i in range(1, buffer_size+1):
+        send_lst.append(my_byte_lst[delayed_frame - i])
+
+    send_bytes = bytes(send_lst)
+    link.send(send_bytes)
+
+    recv_buffer += link.recv(1024)
+
+    while len(recv_buffer) >= 5:
+        recv_bytes = recv_buffer[:5]
+        recv_buffer = recv_buffer[5:]
+        recv_lst = [i for i in recv_bytes]
+        print(frame, recv_lst)
+        recv_frame = recv_lst[0] * 256 + recv_lst[1]
+
+        if recv_frame > len(enemy_byte_lst) + 2:
+            raise IOError('more than 3 packs lost')
+        else:
+            for f in range(len(enemy_byte_lst), recv_frame):
+                enemy_byte_lst.append(recv_lst[recv_frame - f + 2])
+
+    all_keys = {}
+    all_keys.update(my_key_to_byte(my_byte_lst[frame]))
+    all_keys.update(enemy_key_to_byte(enemy_byte_lst[frame]))
+    return all_keys
 
 
 def on_press(key):
@@ -212,8 +257,7 @@ def main():
     #
     # last = [[0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]]
 
-    max_buffer = 3
-    pressing_buffer = []
+    frame_count = 0
 
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         # listener.run()
@@ -237,16 +281,7 @@ def main():
 
             if line_mode:
                 # 这里交换信息
-                link_pressing = update_by_net(link, now_pressing)
-
-                pressing_buffer.append(link_pressing)
-                for i in range(max_buffer):
-                    if i == len(pressing_buffer) - 1:
-                        break
-                    pressing_buffer[i] = pressing_buffer[i + 1].copy()
-                if len(pressing_buffer) == max_buffer + 1:
-                    pressing_buffer.pop()
-                pressing = pressing_buffer[0]
+                pressing = update_by_net(link, now_pressing, frame_count)
             else:
                 pressing = now_pressing
 
@@ -382,6 +417,8 @@ def main():
             # 调用绘图
             display(player_red, player_blue, bullet_list_red, bullet_list_blue)
             do_exit()
+
+            frame_count += 1
 
     # 把这个改成更科学一点的显示
     if not player_blue.is_alive():
