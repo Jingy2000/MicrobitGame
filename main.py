@@ -4,29 +4,16 @@ from pygame import K_w, K_a, K_s, K_d, K_f, K_g, K_UP, QUIT, \
 from pygame import event
 from display import display, do_exit, display_init
 from pynput import keyboard
+import socket
 
 # import serial
 # import re
 
-# SEP = bytes([9])
+line_mode = False
+is_server = False
 
 Smooth_Multi = 1
-
-Player_Maxspeed = 16 / Smooth_Multi
-
-# b_A = K_f
-# b_B = K_g
-# b_L = K_a
-# b_R = K_d
-# b_U = K_w
-# b_D = K_s
-
-# r_A = K_COMMA
-# r_B = K_PERIOD
-# r_L = K_LEFT
-# r_R = K_RIGHT
-# r_U = K_UP
-# r_D = K_DOWN
+Player_Maxspeed = 10 / Smooth_Multi
 
 b_A = 'f'
 b_B = 'g'
@@ -47,6 +34,25 @@ r_S = '/'
 # using_keys = [K_w, K_a, K_s, K_d, K_f, K_g, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA]
 using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/']
 now_pressing = {k: 0 for k in using_keys}
+
+def line_link():
+    if is_server:
+        s = socket.socket()  # 创建 socket 对象
+        port = 21001  # 设置端口
+        s.bind(('10.3.160.107', port))  # 绑定端口
+        s.listen(1)  # 等待客户端连接
+        print('waiting for connection...')
+        c, addr = s.accept()  # 建立客户端连接
+        print('connection created!', addr)
+        c.send(b'welcome!')
+        return c
+    else:
+        port = 47338  # 设置端口号
+        s = socket.socket()
+        s.connect(('memento.51vip.biz', port))
+        s.recv(1024)
+        print('connection created!')
+        return s
 
 
 def on_press(key):
@@ -131,6 +137,8 @@ def main():
 
     init()
     display_init()
+    if line_mode:
+        line_link()
 
     # key.set_repeat(0, 50)
 
@@ -139,13 +147,13 @@ def main():
     #
     # last = [[0, 0], [0, 0, 0, 0, 0], [0, 0], [0, 0, 0, 0, 0]]
 
-    max_buffer = 2
+    max_buffer = 3
     pressing_buffer = []
 
     with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
         # listener.run()
         while player_blue.is_alive() and player_red.is_alive():
-            FPSclock.tick(15 * Smooth_Multi)
+            FPSclock.tick(30 * Smooth_Multi)
             # 接受指令
             # pressing = key.get_pressed()
             # if key_pressed[K_ESCAPE]:
@@ -169,10 +177,9 @@ def main():
                 pressing_buffer[i] = pressing_buffer[i + 1].copy()
             if len(pressing_buffer) == max_buffer + 1:
                 pressing_buffer.pop()
+            pressing = pressing_buffer[0]
 
             # 移动处理
-
-            pressing = pressing_buffer[0]
 
             r_vx = 0
             r_vy = 0
