@@ -9,7 +9,7 @@ import socket
 # import serial
 # import re
 
-line_mode = False
+line_mode = True
 is_server = True
 
 Smooth_Multi = 1
@@ -74,9 +74,10 @@ log_file = open('log.txt', 'w')
 
 
 def line_link():
+    global recv_buffer
+    recv_buffer = b''
     if is_server:
         s = socket.socket()  # 创建 socket 对象
-        s.setblocking(False)
         port = 21001  # 设置端口
         s.bind(('10.3.160.107', port))  # 绑定端口
         s.listen(1)  # 等待客户端连接
@@ -84,14 +85,15 @@ def line_link():
         c, addr = s.accept()  # 建立客户端连接
         print('connection created!', addr)
         c.send(b'welcome!')
+        c.setblocking(False)
         return c
     else:
         port = 47338  # 设置端口号
         s = socket.socket()
-        s.setblocking(False)
         s.connect(('memento.51vip.biz', port))
         s.recv(1024)
         print('connection created!')
+        s.setblocking(False)
         return s
 
 
@@ -136,14 +138,16 @@ def update_by_net(link, my_keys, frame):
     my_bytes = my_key_to_byte(my_keys)
     my_byte_lst.append(my_bytes)
     delayed_frame = frame + 2
-    send_lst = [delayed_frame // 256, delayed_frame % 256, my_bytes]
-    for i in range(1, buffer_size+1):
-        send_lst.append(my_byte_lst[delayed_frame - i])
+    send_lst = [delayed_frame // 256, delayed_frame % 256, ord(my_bytes)]
+    for i in range(1, buffer_size + 1):
+        send_lst.append(ord(my_byte_lst[delayed_frame - i]))
 
     send_bytes = bytes(send_lst)
     link.send(send_bytes)
-
-    recv_buffer += link.recv(1024)
+    try:
+        recv_buffer += link.recv(1024)
+    except BlockingIOError:
+        pass
 
     while len(recv_buffer) >= 5:
         recv_bytes = recv_buffer[:5]
@@ -159,8 +163,8 @@ def update_by_net(link, my_keys, frame):
                 enemy_byte_lst.append(recv_lst[recv_frame - f + 2])
 
     all_keys = {}
-    all_keys.update(my_key_to_byte(my_byte_lst[frame]))
-    all_keys.update(enemy_key_to_byte(enemy_byte_lst[frame]))
+    all_keys.update(my_byte_to_key(my_byte_lst[frame]))
+    all_keys.update(enemy_byte_to_key(enemy_byte_lst[frame]))
     return all_keys
 
 
