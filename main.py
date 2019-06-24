@@ -144,10 +144,17 @@ def update_by_net(link, my_keys, frame):
 
     send_bytes = bytes(send_lst)
     link.send(send_bytes)
+
     try:
         recv_buffer += link.recv(1024)
     except BlockingIOError:
         pass
+
+    while (frame == len(enemy_byte_lst)) and (len(recv_buffer) < 5):
+        try:
+            recv_buffer += link.recv(1024)
+        except BlockingIOError:
+            pass
 
     while len(recv_buffer) >= 5:
         recv_bytes = recv_buffer[:5]
