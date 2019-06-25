@@ -57,7 +57,7 @@ class Bullet:
             player.subHp(self.damage)
             return True
         if distance < eff_radius * 3:
-            player.energy.update()
+            player.energy.update(10)  # graze
         return False
 
     def is_alive(self):
@@ -90,8 +90,8 @@ class Gauge:
         self.max = max
         self.v = v  # 自动回复的速度
 
-    def update(self):
-        self.length += self.v
+    def update(self, n=1):
+        self.length += self.v * n
         if self.length > self.max:
             self.length = self.max
         if self.length < 0:
@@ -113,7 +113,7 @@ class Gauge:
 class Player:
     def __init__(self, y, angle):
         self.hp = Gauge(100, v=-1, init=100)
-        self.energy = Gauge(100)
+        self.energy = Gauge(1000)
         self.power = Gauge(30)
         self.vmax = 5
         self.__direction = (0, 0)  # 方向是手柄给出的方向，上-，左-
@@ -129,6 +129,8 @@ class Player:
     def move(self):
         if self.cd > 0:
             self.cd -= 1
+
+        self.energy.update()
 
         for card in self.cards:
             if not card.ready():
@@ -230,12 +232,12 @@ class Player:
         pass
 
     def use_card(self, i):
-        if self.energy.is_ready():
-            self.energy.clear()
+        if (self.energy.length >= self.cards[i].cost) and (self.cards[i].ready()):
+            self.energy.update(-self.cards[i].cost)
         else:
             return
         if (self.cd == 0) and self.cards[i].ready():
-            self.cards[self.card_on].run()
+            self.cards[i].run()
             self.cd = self.cards[i].silent
 
     def run_card(self):
@@ -346,7 +348,7 @@ class P_Re(Player):
         Player.__init__(self, y, angle)
 
     def move(self):
-        self.energy.update()
+        self.energy.update(20)
         Player.move(self)
 
     def baseAttack(self):
@@ -404,6 +406,7 @@ class Card:
         self.max_cd = 0
         self.duration = 0
         self.cd = 0
+        self.cost = 500
         self.on = False
         self.master = master
 
@@ -621,6 +624,16 @@ class C_reflect(Card):
                            v=8, rebound=1))
         return b_lst
 
-#    Bullet(type=bullet_round_blue, pos=self.master.getPos(),
-#           angle=self.master.angle + (i - 0.5) * 10 * sin((self.time - 1) * 0.3),
-#           v=j + 5))
+
+class C_heal(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 0 * Smooth_Multi
+        self.max_cd = 300 * Smooth_Multi
+        self.duration = 20 * Smooth_Multi
+        self.cost = 200
+
+    def shoot(self):
+        if (self.time % 2 == 0) and (self.time > 10):
+            self.master.hp.update(-1)
+        return []

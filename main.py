@@ -9,7 +9,7 @@ import socket
 # import serial
 # import re
 
-line_mode = True
+line_mode = False
 is_server = True
 
 Smooth_Multi = 1
@@ -35,6 +35,7 @@ if line_mode:
 else:
     b_A = 'f'
     b_B = 'g'
+    b_card = ['g', 'r', 't', 'v']
     b_L = 'a'
     b_R = 'd'
     b_U = 'w'
@@ -43,6 +44,7 @@ else:
 
     r_A = ','
     r_B = '.'
+    r_card = ['.', 'l', ';', 'ctrl_r']
     r_L = 'left'
     r_R = 'right'
     r_U = 'up'
@@ -62,7 +64,8 @@ l_keys = {'z': 0, 'x': 1, 'left': 2, 'right': 3, 'up': 4, 'down': 5, 'shift': 6}
 
 # using_keys = [K_w, K_a, K_s, K_d, K_f, K_g, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA]
 
-using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/', 'shift', 'z', 'x']
+using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/', 'shift', 'z', 'x', 'r',
+              't', 'v', 'l', ';', 'ctrl_r']
 now_pressing = {k: 0 for k in using_keys}
 
 buffer_size = 2
@@ -255,6 +258,9 @@ def main():
     player_blue.set_enemy(player_red)
 
     player_red.cards.append(C_lock(player_red))
+    player_red.cards.append(C_heal(player_red))
+    player_red.cards.append(C_spark(player_red))
+    player_red.cards.append(C_trap(player_red))
     player_blue.cards.append(C_spark_aim(player_blue))
 
     bullet_list_red = []
@@ -386,10 +392,11 @@ def main():
                     bullet_list_blue.append(bullet)
 
             # card释放
-            if pressing[r_B]:
-                player_red.use_card(0)
-            if pressing[b_B]:
-                player_blue.use_card(0)
+            for i in range(4):
+                if pressing[r_card[i]]:
+                    player_red.use_card(i)
+                if pressing[b_card[i]]:
+                    player_blue.use_card(i)
 
             # 移动
             # print(pressing)
