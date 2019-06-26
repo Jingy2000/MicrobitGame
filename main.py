@@ -6,69 +6,19 @@ from pynput import keyboard
 from functools import reduce
 import socket
 
+from Consts.network import *
+from Consts.game_core import *
+from Consts.control import *
+
 # import serial
 # import re
+if online_mode:
+    blue_keys = online_keys
+    red_keys = online_enemy_keys
 
-line_mode = False
-is_server = True
-
-Smooth_Multi = 1
-Player_Maxspeed = 10 / Smooth_Multi
-
-if line_mode:
-    b_A = 'z'
-    b_B = 'x'
-    b_L = 'left'
-    b_R = 'right'
-    b_U = 'up'
-    b_D = 'down'
-    b_S = 'shift'
-
-    r_A = 'RA'
-    r_B = 'RB'
-    r_L = 'RL'
-    r_R = 'RR'
-    r_U = 'RU'
-    r_D = 'RD'
-    r_S = 'RS'
-
-else:
-    b_A = 'f'
-    b_B = 'g'
-    b_card = ['g', 'r', 't', 'v']
-    b_L = 'a'
-    b_R = 'd'
-    b_U = 'w'
-    b_D = 's'
-    b_S = 'c'
-
-    r_A = ','
-    r_B = '.'
-    r_card = ['.', 'l', ';', 'ctrl_r']
-    r_L = 'left'
-    r_R = 'right'
-    r_U = 'up'
-    r_D = 'down'
-    r_S = '/'
-
-# l_A = 'z'
-# l_B = 'x'
-# l_L = 'left'
-# l_R = 'right'
-# l_U = 'up'
-# l_D = 'down'
-# l_S = 'shift'
-
-
-l_keys = {'z': 0, 'x': 1, 'left': 2, 'right': 3, 'up': 4, 'down': 5, 'shift': 6}
-
-# using_keys = [K_w, K_a, K_s, K_d, K_f, K_g, K_UP, K_DOWN, K_LEFT, K_RIGHT, K_PERIOD, K_COMMA]
-
-using_keys = ['w', 'a', 's', 'd', 'f', 'g', ',', '.', 'up', 'down', 'left', 'right', 'c', '/', 'shift', 'z', 'x', 'r',
-              't', 'v', 'l', ';', 'ctrl_r']
+using_keys = [red_keys[k] for k in red_keys if k != 'card'] + [blue_keys[k] for k in blue_keys if k != 'card']
+using_keys += [red_keys['card'][i] for i in range(4)] + [blue_keys['card'][i] for i in range(4)]
 now_pressing = {k: 0 for k in using_keys}
-
-buffer_size = 2
 
 my_byte_lst = [b'\x00' for i in range(buffer_size)]
 enemy_byte_lst = [b'\x00' for i in range(buffer_size)]
@@ -76,7 +26,7 @@ enemy_byte_lst = [b'\x00' for i in range(buffer_size)]
 log_file = open('log.txt', 'w')
 
 
-def line_link():
+def online_link():
     global recv_buffer
     recv_buffer = b''
     if is_server:
@@ -259,7 +209,7 @@ def main():
 
     player_red.cards.append(C_lock(player_red))
     player_red.cards.append(C_heal(player_red))
-    player_red.cards.append(C_spark(player_red))
+    player_red.cards.append(C_guard(player_red))
     player_red.cards.append(C_trap(player_red))
     player_blue.cards.append(C_spark_aim(player_blue))
 
@@ -274,8 +224,8 @@ def main():
     # b_vx = 0
     # b_vy = 0
     link = None
-    if line_mode:
-        link = line_link()
+    if online_mode:
+        link = online_link()
 
     init()
     display_init()
@@ -309,7 +259,7 @@ def main():
             # if eve.type == QUIT:
             #     exit()
 
-            if line_mode:
+            if online_mode:
                 # 这里交换信息
                 pressing = update_by_net(link, now_pressing, frame_count)
             else:
@@ -322,38 +272,38 @@ def main():
             b_vx = 0
             b_vy = 0
 
-            if pressing[r_U] and not pressing[r_D]:
+            if pressing[red_keys['U']] and not pressing[red_keys['D']]:
                 r_vy = -Player_Maxspeed
-            elif pressing[r_D] and not pressing[r_U]:
+            elif pressing[red_keys['D']] and not pressing[red_keys['U']]:
                 r_vy = Player_Maxspeed
-            if pressing[r_L] and not pressing[r_R]:
+            if pressing[red_keys['L']] and not pressing[red_keys['R']]:
                 r_vx = -Player_Maxspeed
-            elif pressing[r_R] and not pressing[r_L]:
+            elif pressing[red_keys['R']] and not pressing[red_keys['L']]:
                 r_vx = Player_Maxspeed
             if (r_vx != 0) and (r_vy != 0):
                 r_vx *= 0.5 ** 0.5
                 r_vy *= 0.5 ** 0.5
-            if pressing[r_S]:
+            if pressing[red_keys['S']]:
                 r_vx *= 0.5
                 r_vy *= 0.5
 
-            if pressing[b_U] and not pressing[b_D]:
+            if pressing[blue_keys['U']] and not pressing[blue_keys['D']]:
                 b_vy = -Player_Maxspeed
-            elif pressing[b_D] and not pressing[b_U]:
+            elif pressing[blue_keys['D']] and not pressing[blue_keys['U']]:
                 b_vy = Player_Maxspeed
-            if pressing[b_L] and not pressing[b_R]:
+            if pressing[blue_keys['L']] and not pressing[blue_keys['R']]:
                 b_vx = -Player_Maxspeed
-            elif pressing[b_R] and not pressing[b_L]:
+            elif pressing[blue_keys['R']] and not pressing[blue_keys['L']]:
                 b_vx = Player_Maxspeed
             if (b_vx != 0) and (b_vy != 0):
                 b_vx *= 0.5 ** 0.5
                 b_vy *= 0.5 ** 0.5
-            if pressing[b_S]:
+            if pressing[blue_keys['S']]:
                 b_vx *= 0.5
                 b_vy *= 0.5
 
             # 人物基本攻击和蓄力攻击
-            if pressing[r_A]:
+            if pressing[red_keys['A']]:
                 r_A_down = True
                 bs = player_red.power_up()
                 if bs != None:
@@ -367,7 +317,7 @@ def main():
                             bullet_list_red.append(bullet)
                 r_A_down = False
 
-            if pressing[b_A]:
+            if pressing[blue_keys['A']]:
                 b_A_down = True
                 bs = player_blue.power_up()
                 if bs != None:
@@ -393,9 +343,9 @@ def main():
 
             # card释放
             for i in range(4):
-                if pressing[r_card[i]]:
+                if pressing[red_keys['card'][i]]:
                     player_red.use_card(i)
-                if pressing[b_card[i]]:
+                if pressing[blue_keys['card'][i]]:
                     player_blue.use_card(i)
 
             # 移动

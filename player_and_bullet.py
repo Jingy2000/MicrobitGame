@@ -163,8 +163,7 @@ class Player:
         self.__direction = tuple(dir)
 
     def subHp(self, n=1):
-        for i in range(n):
-            self.hp.update()
+        self.hp.update(n)
 
     def power_up(self):
         if self.cd > 0:
@@ -420,7 +419,7 @@ class Card:
         if self.cd == 0:
             self.cd = self.max_cd
             self.on = True
-            self.time = 1
+            self.time = 0
             return []
 
         if self.time == self.duration + 1:
@@ -636,4 +635,21 @@ class C_heal(Card):
     def shoot(self):
         if (self.time % 2 == 0) and (self.time > 10):
             self.master.hp.update(-1)
+        return []
+
+
+class C_guard(Card):
+    def __init__(self, master):
+        Card.__init__(self, master)
+        self.silent = 0 * Smooth_Multi
+        self.max_cd = 240 * Smooth_Multi
+        self.duration = 240 * Smooth_Multi
+        self.cost = 200
+
+    def shoot(self):
+        if self.time == 10:
+            self.master.hp.v = 1
+
+        if self.time == 230:
+            self.master.hp.v = -1
         return []

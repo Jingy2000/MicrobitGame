@@ -1,0 +1,28 @@
+online_keys = {'A': 'z',
+               'card': ['x', 'c', 'd', 'f'],
+               'L': 'left',
+               'R': 'right',
+               'U': 'up',
+               'D': 'down',
+               'S': 'shift'}
+online_enemy_keys = {'A': 'EA',
+                     'card': ['EC1', 'EC2', 'EC3', 'EC4'],
+                     'L': 'EL',
+                     'R': 'ER',
+                     'U': 'EU',
+                     'D': 'ED',
+                     'S': 'ES'}
+blue_keys = {'A': 'f',
+             'card': ['g', 'r', 't', 'v'],
+             'L': 'a',
+             'R': 'd',
+             'U': 'w',
+             'D': 's',
+             'S': 'c'}
+red_keys = {'A': ',',
+            'card': ['.', 'l', ';', 'ctrl_r'],
+            'L': 'left',
+            'R': 'right',
+            'U': 'up',
+            'D': 'down',
+            'S': '/'}
